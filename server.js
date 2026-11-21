@@ -58,6 +58,21 @@ async function deleteStorageObject(storagePath) {
   }
 }
 
+async function deleteFallbackVideoById(id) {
+  const cleanId = String(id || '').trim();
+  if (!cleanId || cleanId.startsWith('local_')) return;
+
+  const candidatePaths = ['.mp4', '.webm', '.mov', '.mkv', '.m4v'].map((ext) => `videos/${cleanId}${ext}`);
+  try {
+    const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove(candidatePaths);
+    if (error) {
+      console.error('Error en borrado de respaldo en Supabase Storage:', error.message);
+    }
+  } catch (err) {
+    console.error('Excepción en borrado de respaldo en Supabase Storage:', err.message);
+  }
+}
+
 function saveState() {
   try {
     const payload = {
@@ -247,13 +262,20 @@ app.get('/api/queue/:id/stream', (req, res) => {
 });
 
 app.delete('/api/queue/:id', async (req, res) => {
-  const idx = queueItems.findIndex((v) => v.id === req.params.id);
+  const id = String(req.params.id || '').trim();
+  const idx = queueItems.findIndex((v) => v.id === id);
+
   if (idx === -1) {
+    await deleteFallbackVideoById(id);
     return res.json({ ok: true, deleted: false });
   }
 
   const [removed] = queueItems.splice(idx, 1);
-  await deleteStorageObject(removed.storagePath);
+  if (removed.storagePath) {
+    await deleteStorageObject(removed.storagePath);
+  } else {
+    await deleteFallbackVideoById(removed.id);
+  }
   saveState();
 
   return res.json({ ok: true, deleted: true });
