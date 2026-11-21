@@ -11,7 +11,8 @@ const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const DATA_DIR = path.join(__dirname, 'data');
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_AGE_DAYS = 8;
+const MAX_AGE_MS = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
@@ -55,7 +56,7 @@ function saveState() {
 }
 
 function cleanupExpiredVideos() {
-  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  const cutoff = Date.now() - MAX_AGE_MS;
   let changed = false;
 
   const remaining = [];
@@ -105,7 +106,7 @@ function loadState() {
 
     if (Array.isArray(parsed?.lastUploadByUser)) {
       lastUploadByUser.clear();
-      const maxAgeMs = Math.max(cooldownSettings.minutes * 60 * 1000, SEVEN_DAYS_MS);
+      const maxAgeMs = Math.max(cooldownSettings.minutes * 60 * 1000, MAX_AGE_MS);
       const now = Date.now();
       for (const entry of parsed.lastUploadByUser) {
         if (!Array.isArray(entry) || entry.length < 2) continue;
