@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaccion17</title>
+    <link rel="icon" type="image/png" href="/logo.png?v=4">
+    <link rel="shortcut icon" href="/logo.png?v=4">
+    <link rel="apple-touch-icon" href="/logo.png?v=4">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0e0e10;
+            --bg-card: #18181b;
+            --accent: #9146ff;
+            --accent-hover: #772ce8;
+            --text-main: #efeff1;
+            --text-muted: #adadb8;
+            --border: #2f2f35;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(circle at 50% -10%, rgba(145, 70, 255, 0.20), transparent 55%),
+                linear-gradient(160deg, #0b0b0e 0%, #170e26 52%, #0d0c12 100%);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 14px 20px;
+            position: relative;
+        }
+
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            background:
+                radial-gradient(circle at 50% 35%, rgba(145, 70, 255, 0.28), transparent 58%),
+                linear-gradient(160deg, #09090c 0%, #190e2b 52%, #0b0a10 100%);
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 1.0s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: auto;
+        }
+
+        #splash-screen.splash-hide {
+            opacity: 0;
+            transform: scale(1.03);
+            pointer-events: none;
+        }
+
+        #splash-screen.splash-gone {
+            display: none;
+        }
+
+        .splash-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 0 28px rgba(145, 70, 255, 0.55);
+            animation: splashPulse 2.1s ease-in-out infinite;
+        }
+
+        .splash-brand {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+            text-shadow: 0 0 28px rgba(145, 70, 255, 0.55);
+            animation: splashPulse 2.1s ease-in-out infinite;
+        }
+
+        .splash-loader-track {
+            width: 190px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .splash-loader-bar {
+            width: 48%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #772ce8, #b680ff, #9146ff);
+            animation: splashSlide 1.55s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes splashPulse {
+            0%, 100% {
+                opacity: 0.88;
+                transform: translateY(0px);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-3px);
+            }
+        }
+
+        @keyframes splashSlide {
+            0% {
+                transform: translateX(-110%);
+            }
+            100% {
+                transform: translateX(240%);
+            }
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(24, 24, 27, 0.94) 0%, rgba(43, 22, 77, 0.88) 100%);
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(145, 70, 255, 0.28);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+            margin-bottom: 14px;
+            flex-shrink: 0;
+            z-index: 10;
+            gap: 10px;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid rgba(145, 70, 255, 0.35);
+        }
+
+        .navbar h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .queue-pill {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #d8bfff;
+            background: rgba(145, 70, 255, 0.20);
+            border: 1px solid rgba(145, 70, 255, 0.42);
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .nav-buttons button {
+            background: rgba(14, 14, 16, 0.55);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.1s;
+        }
+
+        .nav-buttons button.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .view-section {
+            width: 100%;
+            max-width: 780px;
+            flex: 1;
+            display: none;
+            overflow: hidden;
+            position: relative;
+            z-index: 5;
+            min-height: 0;
+        }
+
+        .view-section.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-center-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .user-queue-panel {
+            position: fixed;
+            right: 20px;
+            top: 76px;
+            width: 300px;
+            max-height: calc(100vh - 96px);
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(145, 70, 255, 0.30);
+            border-radius: 16px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            z-index: 15;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .user-queue-panel.visible-in-chat {
+            display: flex;
+        }
+
+        .user-queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .user-queue-header h3 {
+            font-size: 0.98rem;
+            font-weight: 700;
+        }
+
+        .user-queue-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .user-queue-badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-clear-seen {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.38);
+            background: rgba(255, 107, 107, 0.12);
+            color: #ff9b9b;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn-clear-seen:hover {
+            background: rgba(255, 107, 107, 0.22);
+            border-color: rgba(255, 107, 107, 0.65);
+            color: #ffc2c2;
+        }
+
+        .my-video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .my-video-item {
+            background: #111115;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .my-video-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .status-pill.pending {
+            background: rgba(145, 70, 255, 0.20);
+            color: #d7bcff;
+            border: 1px solid rgba(145, 70, 255, 0.45);
+        }
+
+        .status-pill.seen {
+            background: rgba(0, 245, 147, 0.14);
+            color: #63f5b9;
+            border: 1px solid rgba(0, 245, 147, 0.35);
+        }
+
+        .my-video-url {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .my-video-meta {
+            font-size: 0.75rem;
+            color: #9e9ea8;
+        }
+
+        .feed-users-panel {
+            position: fixed;
+            left: 20px;
+            top: 76px;
+            width: 280px;
+            max-height: calc(100vh - 96px);
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(145, 70, 255, 0.30);
+            border-radius: 16px;
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            z-index: 15;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .feed-users-panel.visible-in-feed {
+            display: flex;
+        }
+
+        .feed-users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feed-users-header h3 {
+            font-size: 0.96rem;
+            font-weight: 700;
+        }
+
+        .feed-users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feed-user-row {
+            background: #111115;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .feed-user-row:hover {
+            background: #191822;
+            border-color: rgba(145, 70, 255, 0.55);
+        }
+
+        .feed-user-name {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #d8bfff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .feed-user-count {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: rgba(145, 70, 255, 0.20);
+            color: #e6d4ff;
+            border: 1px solid rgba(145, 70, 255, 0.45);
+            white-space: nowrap;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #0e0e10;
+            color: white;
+            font-size: 0.95rem;
+        }
+
+        input[type="file"] {
+            padding: 9px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .status-msg {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #00f593;
+        }
+
+        .status-msg.error {
+            color: #ff6b6b;
+        }
+
+        .feed-cooldown-bar {
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto 10px auto;
+            padding: 9px 14px;
+            border-radius: 12px;
+            background: rgba(24, 24, 27, 0.94);
+            border: 1px solid rgba(145, 70, 255, 0.30);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .cooldown-status-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+        }
+
+        .cooldown-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .cooldown-badge.on {
+            background: rgba(0, 245, 147, 0.14);
+            color: #63f5b9;
+            border: 1px solid rgba(0, 245, 147, 0.35);
+        }
+
+        .cooldown-badge.off {
+            background: rgba(255, 107, 107, 0.14);
+            color: #ff9b9b;
+            border: 1px solid rgba(255, 107, 107, 0.35);
+        }
+
+        .cooldown-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .cooldown-mins-input {
+            width: 68px;
+            padding: 5px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #0e0e10;
+            color: #fff;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .btn-cd {
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #26262c;
+            color: var(--text-main);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn-cd:hover {
+            background: #34343d;
+        }
+
+        .btn-cd.enable.active {
+            background: rgba(0, 245, 147, 0.20);
+            border-color: rgba(0, 245, 147, 0.55);
+            color: #7df7c6;
+        }
+
+        .btn-cd.disable.active {
+            background: rgba(255, 107, 107, 0.20);
+            border-color: rgba(255, 107, 107, 0.55);
+            color: #ff9b9b;
+        }
+
+        #feed-container {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            border-radius: 16px;
+        }
+
+        #feed-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .video-card {
+            height: 100%;
+            width: min(100%, calc((100vh - 140px) * 9 / 16 + 24px));
+            max-width: 430px;
+            margin: 0 auto 16px auto;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .video-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .user-badge {
+            font-weight: 600;
+            color: #bf94ff;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .platform-tag {
+            font-size: 0.72rem;
+            background: #2f2f35;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .player-container {
+            width: 100%;
+            aspect-ratio: 9 / 16;
+            max-height: 100%;
+            flex: 1;
+            min-height: 0;
+            background: #141418;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #26262c;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.08s ease-out;
+        }
+
+        .btn-small:hover {
+            background: #32323a;
+        }
+
+        .btn-seen {
+            background: #00f59318;
+            border-color: #00f59355;
+            color: #5cf2b5;
+        }
+
+        .btn-seen:hover {
+            background: #00f5932e;
+            border-color: #00f59399;
+        }
+
+        .side-nav {
+            position: fixed;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            z-index: 20;
+        }
+
+        .side-nav.visible {
+            display: flex;
+        }
+
+        .side-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(39, 39, 42, 0.85);
+            color: #efeff1;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            transition: 0.08s ease-out;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .side-btn:hover {
+            background: rgba(63, 63, 70, 0.95);
+            transform: scale(1.06);
+        }
+
+        .side-btn:active {
+            transform: scale(0.96);
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 360px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #splash-screen,
+            .splash-logo,
+            .splash-brand,
+            .splash-loader-bar {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        @media (max-width: 1120px) {
+            .user-queue-panel.visible-in-chat,
+            .feed-users-panel.visible-in-feed {
+                position: static;
+                width: 100%;
+                max-width: 480px;
+                margin: 14px auto 0 auto;
+                max-height: none;
+                box-shadow: none;
+            }
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            .view-section.active {
+                overflow: visible;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .queue-pill {
+                display: none;
+            }
+            .side-nav {
+                right: 10px;
+                gap: 10px;
+            }
+            .side-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px 0;
+            font-size: 0.88rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen" role="status" aria-live="polite" aria-label="Cargando Reaccion17">
+        <img src="/logo.png" alt="Logo Reaccion17" class="splash-logo">
+        <div class="splash-brand">Reaccion17</div>
+        <div class="splash-loader-track">
+            <div class="splash-loader-bar"></div>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <div class="brand-group">
+            <img src="/logo.png" alt="Logo Reaccion17" class="brand-logo">
+            <h1>Reaccion17</h1>
+            <span id="queue-counter-pill" class="queue-pill">Cola: 0</span>
+        </div>
+        <div class="nav-buttons">
+            <button id="btn-chat" class="active" onclick="switchView('chat')">Vista Chat</button>
+            <button id="btn-admin" onclick="requestAdminView()">Feed</button>
+        </div>
+    </div>
+
+    <div id="view-chat" class="view-section active">
+        <div class="chat-center-wrap">
+            <div class="card">
+                <h2 style="margin-bottom: 8px;">Sube tu video descargado</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                    El archivo se borra al marcarlo como visto para ahorrar almacenamiento y CPU.
+                </p>
+                <form id="video-form">
+                    <div class="form-group">
+                        <label>Nombre de usuario</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Archivo de video (.mp4, .webm, .mov)</label>
+                        <input type="file" id="video-file" accept="video/mp4,video/webm,video/quicktime,video/*" required>
+                    </div>
+                    <button type="submit" id="btn-submit-video" class="btn-submit">Enviar a la cola</button>
+                </form>
+                <div id="status-msg" class="status-msg"></div>
+            </div>
+        </div>
+    </div>
+
+    <aside id="user-queue-panel" class="user-queue-panel visible-in-chat" aria-label="Tus videos enviados">
+        <div class="user-queue-header">
+            <div>
+                <h3>📋 Tus videos</h3>
+                <p id="my-queue-subtitle" class="user-queue-sub">Escribe tu usuario para ver tu estado</p>
+            </div>
+            <div class="user-queue-badges">
+                <span id="my-pending-count" class="status-pill pending">0 en cola</span>
+                <button type="button" id="btn-clear-seen" class="btn-clear-seen" onclick="clearSeenVideos()" style="display: none;">Limpiar vistos</button>
+            </div>
+        </div>
+        <div id="my-videos-list" class="my-video-list">
+            <div class="empty-state">Aún no has enviado videos con este usuario.</div>
+        </div>
+    </aside>
+
+    <aside id="feed-users-panel" class="feed-users-panel" aria-label="Usuarios en cola">
+        <div class="feed-users-header">
+            <h3>👥 Usuarios en cola</h3>
+            <span id="feed-users-total-badge" class="status-pill pending">0 usuarios</span>
+        </div>
+        <div id="feed-users-list" class="feed-users-list">
+            <div class="empty-state">No hay usuarios con videos en cola.</div>
+        </div>
+    </aside>
+
+    <div id="view-admin" class="view-section">
+        <div class="feed-cooldown-bar" aria-label="Control de cooldown">
+            <div class="cooldown-status-group">
+                <span>Cooldown:</span>
+                <span id="cooldown-status-badge" class="cooldown-badge on">Activado</span>
+                <span id="cooldown-duration-label" style="color: var(--text-muted);">(120 min)</span>
+            </div>
+            <div class="cooldown-controls">
+                <input type="number" id="cooldown-minutes-input" class="cooldown-mins-input" min="1" max="10080" value="120" title="Minutos de cooldown">
+                <button type="button" id="btn-cd-enable" class="btn-cd enable active" onclick="setCooldownState(true)">Activar</button>
+                <button type="button" id="btn-cd-disable" class="btn-cd disable" onclick="setCooldownState(false)">Desactivar</button>
+            </div>
+        </div>
+        <div id="feed-container"></div>
+    </div>
+
+    <div id="side-nav" class="side-nav" aria-label="Navegar entre videos">
+        <button onclick="scrollVideo(-1)" class="side-btn" title="Video anterior (Flecha Arriba)">↑</button>
+        <button onclick="scrollVideo(1)" class="side-btn" title="Siguiente video (Flecha Abajo)">↓</button>
+    </div>
+
+    <div id="admin-auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <div class="modal-box">
+            <h3 id="auth-title" style="margin-bottom: 6px; font-size: 1.05rem;">Acceso Reaccion17</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">
+                Ingresa tu clave de streamer para abrir la cola.
+            </p>
+            <form id="admin-auth-form">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="password" id="admin-pin-input" placeholder="Clave de acceso" autocomplete="off" required>
+                </div>
+                <div id="auth-error" class="status-msg error" style="margin-top: 4px; margin-bottom: 8px;"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-small" onclick="closeAdminAuthModal()">Cancelar</button>
+                    <button type="submit" class="btn-small btn-seen">Entrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function initInitialSplash() {
+            const splash = document.getElementById('splash-screen');
+            if (!splash) return;
+
+            let dismissed = false;
+            const hideSplash = () => {
+                if (dismissed) return;
+                dismissed = true;
+                splash.classList.add('splash-hide');
+                setTimeout(() => {
+                    splash.classList.add('splash-gone');
+                }, 1050);
+            };
+
+            window.addEventListener('DOMContentLoaded', () => {
+                setTimeout(hideSplash, 1150);
+            });
+            window.addEventListener('load', () => {
+                setTimeout(hideSplash, 850);
+            });
+            setTimeout(hideSplash, 3400);
+        })();
+    </script>
+
+    <script>
+        const API_BASE = '';
+        const ADMIN_PIN = 'denora2026';
+        const MY_HISTORY_KEY = 'reaccion17_downloaded_history_v1';
+
+        let cooldownConfig = {
+            enabled: true,
+            minutes: 120
+        };
+
+        let videos = [];
+        let audioCtx = null;
+        let scrollSyncRaf = null;
+        let pollTimer = null;
+
+        const savedUsername = localStorage.getItem('denora_last_username');
+        if (savedUsername) {
+            document.getElementById('username').value = savedUsername;
+        }
+
+        function unlockAudioContext() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                if (!audioCtx) {
+                    audioCtx = new AudioContextClass();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch {
+                // Ignorar si no es posible
+            }
+        }
+
+        document.addEventListener('pointerdown', unlockAudioContext, { passive: true });
+        document.addEventListener('keydown', unlockAudioContext, { passive: true });
+
+        function isAdminAuthenticated() {
+            return sessionStorage.getItem('denora_admin_unlocked') === 'true';
+        }
+
+        function requestAdminView() {
+            unlockAudioContext();
+            if (isAdminAuthenticated()) {
+                switchView('admin');
+                return;
+            }
+            const modal = document.getElementById('admin-auth-modal');
+            const input = document.getElementById('admin-pin-input');
+            const errEl = document.getElementById('auth-error');
+            errEl.textContent = '';
+            input.value = '';
+            modal.classList.add('open');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function closeAdminAuthModal() {
+            document.getElementById('admin-auth-modal').classList.remove('open');
+            document.getElementById('auth-error').textContent = '';
+        }
+
+        document.getElementById('admin-auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const enteredPin = document.getElementById('admin-pin-input').value;
+            const errEl = document.getElementById('auth-error');
+
+            if (enteredPin === ADMIN_PIN) {
+                sessionStorage.setItem('denora_admin_unlocked', 'true');
+                closeAdminAuthModal();
+                switchView('admin');
+            } else {
+                errEl.textContent = 'Clave incorrecta.';
+            }
+        });
+
+        function playSeenSound() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+
+                if (!audioCtx) {
+                    audioCtx = new AudioContextClass();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(784, now);
+                osc1.frequency.exponentialRampToValueAtTime(1046.5, now + 0.09);
+
+                gain1.gain.setValueAtTime(0.001, now);
+                gain1.gain.linearRampToValueAtTime(0.06, now + 0.015);
+                gain1.gain.exponentialRampToValueAtTime(0.0008, now + 0.18);
+
+                osc1.connect(gain1);
+                gain1.connect(audioCtx.destination);
+
+                osc1.start(now);
+                osc1.stop(now + 0.19);
+            } catch {
+                // Ignorar si el navegador bloquea el audio
+            }
+        }
+
+        function renderCooldownControls() {
+            const badge = document.getElementById('cooldown-status-badge');
+            const label = document.getElementById('cooldown-duration-label');
+            const input = document.getElementById('cooldown-minutes-input');
+            const btnEnable = document.getElementById('btn-cd-enable');
+            const btnDisable = document.getElementById('btn-cd-disable');
+
+            if (badge) {
+                badge.textContent = cooldownConfig.enabled ? 'Activado' : 'Desactivado';
+                badge.className = `cooldown-badge ${cooldownConfig.enabled ? 'on' : 'off'}`;
+            }
+            if (label) {
+                label.textContent = `(${cooldownConfig.minutes} min)`;
+            }
+            if (input && document.activeElement !== input) {
+                input.value = cooldownConfig.minutes;
+            }
+            if (btnEnable) {
+                btnEnable.classList.toggle('active', Boolean(cooldownConfig.enabled));
+            }
+            if (btnDisable) {
+                btnDisable.classList.toggle('active', !cooldownConfig.enabled);
+            }
+        }
+
+        async function loadCooldownSettings() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/settings/cooldown`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const mins = Number(data?.minutes);
+                cooldownConfig = {
+                    enabled: typeof data?.enabled === 'boolean' ? data.enabled : true,
+                    minutes: Number.isFinite(mins) && mins > 0 ? Math.round(mins) : 120
+                };
+                renderCooldownControls();
+            } catch {
+                // Mantener valores actuales si no hay backend
+            }
+        }
+
+        async function setCooldownState(enabled) {
+            if (!isAdminAuthenticated()) return;
+            const input = document.getElementById('cooldown-minutes-input');
+            const rawMins = Number(input ? input.value : cooldownConfig.minutes);
+            const minutes = Number.isFinite(rawMins) && rawMins > 0 ? Math.min(10080, Math.round(rawMins)) : 120;
+
+            cooldownConfig = {
+                enabled: Boolean(enabled),
+                minutes
+            };
+            renderCooldownControls();
+
+            try {
+                await fetch(`${API_BASE}/api/settings/cooldown`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cooldownConfig)
+                });
+            } catch {
+                // Ignorar si no hay backend
+            }
+        }
+
+        document.getElementById('cooldown-minutes-input').addEventListener('change', () => {
+            if (!isAdminAuthenticated()) return;
+            setCooldownState(cooldownConfig.enabled);
+        });
+
+        function updateQueueCounterUI() {
+            const pill = document.getElementById('queue-counter-pill');
+            if (!pill) return;
+            const count = videos.length;
+            pill.textContent = `Cola: ${count} ${count === 1 ? 'video' : 'videos'}`;
+        }
+
+        function normalizeUser(name) {
+            return String(name || '').trim().replace(/^@+/, '').toLowerCase();
+        }
+
+        function loadMyHistory() {
+            try {
+                const raw = localStorage.getItem(MY_HISTORY_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveMyHistory(items) {
+            try {
+                localStorage.setItem(MY_HISTORY_KEY, JSON.stringify(items.slice(-30)));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        function recordMySubmission(entry) {
+            const history = loadMyHistory();
+            history.push(entry);
+            saveMyHistory(history);
+            renderUserVideosPanel();
+        }
+
+        function clearSeenVideos() {
+            const currentNorm = normalizeUser(document.getElementById('username').value.trim());
+            if (!currentNorm) return;
+
+            const activeIds = new Set(videos.map(v => v.id));
+            const history = loadMyHistory();
+
+            const remaining = history.filter(item => {
+                if (normalizeUser(item.user) !== currentNorm) {
+                    return true;
+                }
+                return activeIds.has(item.id);
+            });
+
+            saveMyHistory(remaining);
+            renderUserVideosPanel();
+        }
+
+        function renderUserVideosPanel() {
+            const listEl = document.getElementById('my-videos-list');
+            const subEl = document.getElementById('my-queue-subtitle');
+            const badgeEl = document.getElementById('my-pending-count');
+            const clearSeenBtn = document.getElementById('btn-clear-seen');
+            const currentUserRaw = document.getElementById('username').value.trim();
+            const currentNorm = normalizeUser(currentUserRaw);
+
+            if (!listEl || !subEl || !badgeEl) return;
+
+            if (!currentNorm) {
+                subEl.textContent = 'Escribe tu usuario para ver tu estado';
+                badgeEl.textContent = '0 en cola';
+                if (clearSeenBtn) clearSeenBtn.style.display = 'none';
+                listEl.innerHTML = '<div class="empty-state">Aún no has enviado videos con este usuario.</div>';
+                return;
+            }
+
+            subEl.textContent = `Usuario: @${currentUserRaw.replace(/^@+/, '')}`;
+
+            const activeMapById = new Map();
+            videos.forEach((v, idx) => {
+                activeMapById.set(v.id, { video: v, position: idx + 1 });
+            });
+
+            const activeForUser = videos
+                .map((v, idx) => ({ ...v, position: idx + 1, isPending: true }))
+                .filter(v => normalizeUser(v.user) === currentNorm);
+
+            const historyForUser = loadMyHistory()
+                .filter(item => normalizeUser(item.user) === currentNorm);
+
+            const combined = [];
+            activeForUser.forEach(v => {
+                combined.push({
+                    id: v.id,
+                    fileName: v.fileName || 'Video descargado',
+                    position: v.position,
+                    createdAt: v.createdAt || 0,
+                    isPending: true
+                });
+            });
+
+            let seenCount = 0;
+            historyForUser.slice().reverse().forEach(h => {
+                if (!activeMapById.has(h.id)) {
+                    seenCount += 1;
+                    combined.push({
+                        id: h.id,
+                        fileName: h.fileName || 'Video descargado',
+                        position: null,
+                        createdAt: h.createdAt || 0,
+                        isPending: false
+                    });
+                }
+            });
+
+            badgeEl.textContent = `${activeForUser.length} ${activeForUser.length === 1 ? 'en cola' : 'en cola'}`;
+            if (clearSeenBtn) {
+                clearSeenBtn.style.display = seenCount > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (combined.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No tienes videos enviados con este usuario.</div>';
+                return;
+            }
+
+            listEl.innerHTML = combined.slice(0, 12).map(item => {
+                const pillClass = item.isPending ? 'pending' : 'seen';
+                const pillText = item.isPending ? `En cola (#${item.position})` : 'Visto y borrado';
+                const detailText = item.isPending
+                    ? 'Listo en la cola del stream.'
+                    : 'Marcado como visto y eliminado del almacenamiento.';
+
+                return `
+                    <div class="my-video-item">
+                        <div class="my-video-top">
+                            <span class="status-pill ${pillClass}">${pillText}</span>
+                        </div>
+                        <div class="my-video-url" title="${item.fileName}">${item.fileName}</div>
+                        <div class="my-video-meta">${detailText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('username').addEventListener('input', renderUserVideosPanel);
+        renderUserVideosPanel();
+
+        function renderFeedUsersPanel() {
+            const panel = document.getElementById('feed-users-panel');
+            const listEl = document.getElementById('feed-users-list');
+            const totalBadge = document.getElementById('feed-users-total-badge');
+            const adminActive = document.getElementById('view-admin').classList.contains('active') && isAdminAuthenticated();
+
+            if (!panel || !listEl || !totalBadge) return;
+
+            panel.classList.toggle('visible-in-feed', Boolean(adminActive));
+            if (!adminActive) return;
+
+            const grouped = new Map();
+            videos.forEach((v, idx) => {
+                const rawName = String(v.user || '').trim() || 'Anónimo';
+                const normKey = rawName.replace(/^@+/, '').toLowerCase() || 'anonimo';
+                const existing = grouped.get(normKey);
+                if (existing) {
+                    existing.count += 1;
+                } else {
+                    grouped.set(normKey, {
+                        displayName: `@${rawName.replace(/^@+/, '')}`,
+                        count: 1,
+                        firstIndex: idx
+                    });
+                }
+            });
+
+            const rows = Array.from(grouped.values()).sort((a, b) => b.count - a.count || a.firstIndex - b.firstIndex);
+            totalBadge.textContent = `${rows.length} ${rows.length === 1 ? 'usuario' : 'usuarios'}`;
+
+            if (rows.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No hay usuarios con videos en cola.</div>';
+                return;
+            }
+
+            listEl.innerHTML = rows.map(r => `
+                <div class="feed-user-row" onclick="jumpToFeedIndex(${r.firstIndex})" title="Ir al primer video de ${r.displayName}">
+                    <span class="feed-user-name">${r.displayName}</span>
+                    <span class="feed-user-count">${r.count} ${r.count === 1 ? 'video' : 'videos'}</span>
+                </div>
+            `).join('');
+        }
+
+        function jumpToFeedIndex(index) {
+            unlockAudioContext();
+            const feed = document.getElementById('feed-container');
+            if (!feed || index < 0 || index >= videos.length) return;
+            const step = feed.clientHeight + 16;
+            feed.scrollTo({
+                top: index * step,
+                behavior: 'smooth'
+            });
+            syncActiveVideoFrame(index);
+        }
+
+        function syncUserPanelVisibility() {
+            const panel = document.getElementById('user-queue-panel');
+            const chatActive = document.getElementById('view-chat').classList.contains('active');
+            if (!panel) return;
+            panel.classList.toggle('visible-in-chat', Boolean(chatActive));
+            renderFeedUsersPanel();
+        }
+
+        function updateSideNavVisibility() {
+            const sideNav = document.getElementById('side-nav');
+            const adminActive = document.getElementById('view-admin').classList.contains('active');
+            if (adminActive && videos.length > 0) {
+                sideNav.classList.add('visible');
+            } else {
+                sideNav.classList.remove('visible');
+            }
+        }
+
+        function unloadAllFeedVideos() {
+            document.querySelectorAll('.video-card video').forEach(videoEl => {
+                videoEl.pause();
+                if (videoEl.src !== '') {
+                    videoEl.removeAttribute('src');
+                    videoEl.load();
+                }
+            });
+        }
+
+        function switchView(view) {
+            if (view === 'admin' && !isAdminAuthenticated()) {
+                requestAdminView();
+                return;
+            }
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-buttons button').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`view-${view}`).classList.add('active');
+            document.getElementById(`btn-${view}`).classList.add('active');
+            syncUserPanelVisibility();
+
+            if (view === 'admin') {
+                renderCooldownControls();
+                renderFeedUsersPanel();
+                renderFeed();
+            } else {
+                renderUserVideosPanel();
+                updateSideNavVisibility();
+                unloadAllFeedVideos();
+            }
+        }
+
+        function getActiveFeedIndex() {
+            const feed = document.getElementById('feed-container');
+            const cards = Array.from(document.querySelectorAll('.video-card'));
+            if (!feed || cards.length === 0) return 0;
+
+            const feedRect = feed.getBoundingClientRect();
+            let closestIdx = 0;
+            let closestDistance = Infinity;
+
+            cards.forEach((card, idx) => {
+                const rect = card.getBoundingClientRect();
+                const dist = Math.abs(rect.top - feedRect.top);
+                if (dist < closestDistance) {
+                    closestDistance = dist;
+                    closestIdx = idx;
+                }
+            });
+
+            return closestIdx;
+        }
+
+        function syncActiveVideoFrame(forcedIndex = null) {
+            const adminActive = document.getElementById('view-admin').classList.contains('active');
+            const cards = Array.from(document.querySelectorAll('.video-card'));
+
+            if (!adminActive || cards.length === 0) {
+                unloadAllFeedVideos();
+                return;
+            }
+
+            const activeIndex = typeof forcedIndex === 'number' ? forcedIndex : getActiveFeedIndex();
+
+            cards.forEach((card, idx) => {
+                const videoEl = card.querySelector('video');
+                if (!videoEl) return;
+
+                const targetSrc = videoEl.dataset.src;
+                if (idx === activeIndex && targetSrc) {
+                    const currentSrc = videoEl.getAttribute('src') || '';
+                    if (currentSrc !== targetSrc) {
+                        videoEl.setAttribute('src', targetSrc);
+                        videoEl.muted = false;
+                        videoEl.play().catch(() => {});
+                    } else if (videoEl.paused && videoEl.currentTime === 0) {
+                        videoEl.muted = false;
+                        videoEl.play().catch(() => {});
+                    }
+                } else {
+                    if (!videoEl.paused) {
+                        videoEl.pause();
+                    }
+                    if (videoEl.getAttribute('src')) {
+                        videoEl.removeAttribute('src');
+                        videoEl.load();
+                    }
+                }
+            });
+        }
+
+        function bindFeedScrollSync() {
+            const feed = document.getElementById('feed-container');
+            if (!feed || feed.dataset.scrollBound === 'true') return;
+            feed.dataset.scrollBound = 'true';
+
+            feed.addEventListener('scroll', () => {
+                if (scrollSyncRaf) return;
+                scrollSyncRaf = requestAnimationFrame(() => {
+                    scrollSyncRaf = null;
+                    syncActiveVideoFrame();
+                });
+            }, { passive: true });
+        }
+
+        function scrollVideo(direction) {
+            unlockAudioContext();
+            const feed = document.getElementById('feed-container');
+            if (!feed) return;
+            const step = feed.clientHeight + 16;
+            const currentIdx = getActiveFeedIndex();
+            const targetIdx = Math.max(0, Math.min(videos.length - 1, currentIdx + direction));
+
+            feed.scrollTo({
+                top: targetIdx * step,
+                behavior: 'smooth'
+            });
+            syncActiveVideoFrame(targetIdx);
+        }
+
+        function getCurrentFeedVideo() {
+            const cards = Array.from(document.querySelectorAll('.video-card'));
+            if (cards.length === 0) return null;
+            const idx = getActiveFeedIndex();
+            const videoId = cards[idx]?.dataset.videoId;
+            return videos.find(v => v.id === videoId) || null;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAdminAuthModal();
+                return;
+            }
+
+            const modalOpen = document.getElementById('admin-auth-modal').classList.contains('open');
+            if (modalOpen) return;
+
+            const adminActive = document.getElementById('view-admin').classList.contains('active');
+            if (!adminActive) return;
+
+            const activeTag = document.activeElement ? document.activeElement.tagName : '';
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                scrollVideo(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                scrollVideo(-1);
+            } else if (e.key === 'Enter' || e.key === 'Delete') {
+                const current = getCurrentFeedVideo();
+                if (current) {
+                    e.preventDefault();
+                    deleteVideo(current.id);
+                }
+            }
+        });
+
+        function getVideoStreamSrc(video) {
+            if (video?.blobUrl) return video.blobUrl;
+            if (video?.streamUrl) return video.streamUrl;
+            if (video?.id) return `${API_BASE}/api/queue/${encodeURIComponent(video.id)}/stream`;
+            return '';
+        }
+
+        document.getElementById('video-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const usernameInput = document.getElementById('username');
+            const fileInput = document.getElementById('video-file');
+            const status = document.getElementById('status-msg');
+            const submitBtn = document.getElementById('btn-submit-video');
+
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+            if (!username || !file) return;
+
+            localStorage.setItem('denora_last_username', username);
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('user', username);
+                formData.append('file', file);
+
+                const resp = await fetch(`${API_BASE}/api/queue`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (resp.ok) {
+                    const created = await resp.json().catch(() => ({}));
+                    const id = created.id || `vid_${Date.now()}`;
+                    recordMySubmission({
+                        id,
+                        user: username,
+                        fileName: created.fileName || file.name,
+                        createdAt: created.createdAt || Date.now()
+                    });
+                    await refreshQueue();
+                } else {
+                    const createdAt = Date.now();
+                    const localId = `local_${createdAt}_${Math.random().toString(36).slice(2, 7)}`;
+                    const blobUrl = URL.createObjectURL(file);
+
+                    videos.push({
+                        id: localId,
+                        user: username,
+                        fileName: file.name,
+                        blobUrl,
+                        createdAt
+                    });
+                    videos.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+                    recordMySubmission({
+                        id: localId,
+                        user: username,
+                        fileName: file.name,
+                        createdAt
+                    });
+
+                    updateQueueCounterUI();
+                    renderFeedUsersPanel();
+                    if (document.getElementById('view-admin').classList.contains('active')) {
+                        renderFeed();
+                    }
+                }
+
+                fileInput.value = '';
+                status.classList.remove('error');
+                status.textContent = '✅ ¡Video agregado a la cola!';
+                setTimeout(() => {
+                    status.textContent = '';
+                }, 3000);
+            } catch {
+                status.classList.add('error');
+                status.textContent = '❌ Error al preparar el video.';
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.classList.remove('error');
+                }, 3500);
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+
+        async function deleteVideo(id) {
+            unlockAudioContext();
+            playSeenSound();
+
+            const target = videos.find(v => v.id === id);
+            if (target?.blobUrl) {
+                URL.revokeObjectURL(target.blobUrl);
+            }
+
+            videos = videos.filter(v => v.id !== id);
+            updateQueueCounterUI();
+            renderUserVideosPanel();
+            renderFeedUsersPanel();
+            if (document.getElementById('view-admin').classList.contains('active')) {
+                renderFeed();
+            }
+
+            if (!String(id).startsWith('local_')) {
+                try {
+                    await fetch(`${API_BASE}/api/queue/${encodeURIComponent(id)}`, {
+                        method: 'DELETE'
+                    });
+                } catch {
+                    // Ignorar error de red al borrar
+                }
+            }
+        }
+
+        function createVideoCardElement(v, index, total) {
+            const src = getVideoStreamSrc(v);
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.dataset.videoId = v.id;
+            card.dataset.mediaKey = src;
+
+            card.innerHTML = `
+                <div class="video-header">
+                    <span class="user-badge">@${v.user} <small class="queue-counter" style="color:#adadb8; font-weight:normal;">(${index + 1}/${total})</small></span>
+                    <div class="header-right">
+                        <span class="platform-tag">Descargado</span>
+                    </div>
+                </div>
+                <div class="player-container" onclick="unlockAudioContext()">
+                    <video data-src="${src}" controls playsinline preload="metadata"></video>
+                </div>
+                <div class="video-actions">
+                    <button type="button" onclick="deleteVideo('${v.id}')" class="btn-small btn-seen">✓ Visto y borrar</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function renderFeed() {
+            const container = document.getElementById('feed-container');
+            bindFeedScrollSync();
+
+            if (videos.length === 0) {
+                unloadAllFeedVideos();
+                container.innerHTML = '<div class="empty-state">No hay videos descargados pendientes en la cola.</div>';
+                updateSideNavVisibility();
+                return;
+            }
+
+            const emptyEl = container.querySelector('.empty-state');
+            if (emptyEl) {
+                emptyEl.remove();
+            }
+
+            const existingCards = Array.from(container.querySelectorAll('.video-card'));
+            const existingById = new Map(existingCards.map(el => [el.dataset.videoId, el]));
+            const nextIds = new Set(videos.map(v => v.id));
+
+            existingCards.forEach(cardEl => {
+                if (!nextIds.has(cardEl.dataset.videoId)) {
+                    const vidEl = cardEl.querySelector('video');
+                    if (vidEl) {
+                        vidEl.pause();
+                        vidEl.removeAttribute('src');
+                        vidEl.load();
+                    }
+                    cardEl.remove();
+                }
+            });
+
+            let structureChanged = existingCards.length !== videos.length;
+
+            videos.forEach((v, index) => {
+                let cardEl = existingById.get(v.id);
+                const mediaKey = getVideoStreamSrc(v);
+
+                if (!cardEl || cardEl.dataset.mediaKey !== mediaKey) {
+                    structureChanged = true;
+                    const newCard = createVideoCardElement(v, index, videos.length);
+                    if (cardEl) {
+                        cardEl.replaceWith(newCard);
+                    } else {
+                        container.appendChild(newCard);
+                    }
+                } else {
+                    const counterEl = cardEl.querySelector('.queue-counter');
+                    if (counterEl) {
+                        counterEl.textContent = `(${index + 1}/${videos.length})`;
+                    }
+                    if (container.children[index] !== cardEl) {
+                        structureChanged = true;
+                        container.insertBefore(cardEl, container.children[index] || null);
+                    }
+                }
+            });
+
+            updateSideNavVisibility();
+            if (structureChanged) {
+                syncActiveVideoFrame();
+            }
+        }
+
+        async function refreshQueue() {
+            try {
+                const resp = await fetch(`${API_BASE}/api/queue`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                const remoteList = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
+                const localItems = videos.filter(v => String(v.id).startsWith('local_'));
+
+                const nextVideos = [...remoteList, ...localItems].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                const prevSignature = videos.map(v => `${v.id}:${v.user}`).join('|');
+                const nextSignature = nextVideos.map(v => `${v.id}:${v.user}`).join('|');
+
+                videos = nextVideos;
+                updateQueueCounterUI();
+                renderUserVideosPanel();
+                renderFeedUsersPanel();
+
+                if (document.getElementById('view-admin').classList.contains('active')) {
+                    if (prevSignature !== nextSignature) {
+                        renderFeed();
+                    }
+                } else {
+                    updateSideNavVisibility();
+                }
+            } catch {
+                // Mantener cola actual si el servicio no responde
+            }
+        }
+
+        loadCooldownSettings();
+        refreshQueue();
+        pollTimer = setInterval(refreshQueue, 4000);
+    </script>
+</body>
+</html>
