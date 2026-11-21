@@ -1151,7 +1151,7 @@
         <div class="brand-group">
             <img src="/logo.png" alt="Logo Reaccion17" class="brand-logo">
             <h1>Reaccion17</h1>
-            <span id="queue-counter-pill" class="queue-pill">Cola: 0</span>
+            <span id="queue-counter-pill" class="queue-pill">Cola: 0 video/s</span>
         </div>
         <div class="nav-buttons">
             <button id="btn-chat" class="active" onclick="switchView('chat')">Vista Chat</button>
@@ -1776,7 +1776,7 @@
             const pill = document.getElementById('queue-counter-pill');
             if (!pill) return;
             const count = videos.length;
-            pill.textContent = `Cola: ${count} ${count === 1 ? 'video' : 'videos'}`;
+            pill.textContent = `Cola: ${count} video/s`;
         }
 
         function loadMyHistory() {
