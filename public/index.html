@@ -1037,6 +1037,18 @@
             user-select: none;
         }
 
+        .version-tag {
+            position: fixed;
+            right: 20px;
+            bottom: 10px;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            color: rgba(173, 173, 184, 0.65);
+            z-index: 12;
+            pointer-events: none;
+            user-select: none;
+        }
+
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -1097,11 +1109,12 @@
                 flex-direction: row;
                 transform: none;
             }
-            .creator-credit {
+            .creator-credit,
+            .version-tag {
                 position: static;
                 width: 100%;
                 max-width: 480px;
-                margin: 14px auto 4px auto;
+                margin: 8px auto 4px auto;
                 text-align: center;
             }
             body {
@@ -1268,6 +1281,7 @@
     </div>
 
     <div class="creator-credit">by RaFah</div>
+    <div class="version-tag">rc17-0023</div>
 
     <div id="admin-auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div class="modal-box">
