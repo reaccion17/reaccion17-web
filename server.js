@@ -8,17 +8,20 @@ const PORT = process.env.PORT || 3000;
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
+const DATA_DIR = path.join(__dirname, 'data');
+const STATE_FILE = path.join(DATA_DIR, 'state.json');
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
 let queueItems = [];
 let cooldownSettings = {
   enabled: true,
   minutes: 120
 };
-
-// Guarda timestamp (ms) del último envío aceptado por usuario normalizado
 const lastUploadByUser = new Map();
 
 function normalizeUsername(name) {
@@ -35,6 +38,93 @@ function removeUploadedFile(filePath) {
     // Ignorar si el archivo está en uso temporalmente
   }
 }
+
+function saveState() {
+  try {
+    const payload = {
+      queueItems,
+      cooldownSettings,
+      lastUploadByUser: Array.from(lastUploadByUser.entries())
+    };
+    const tempFile = `${STATE_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(payload, null, 2), 'utf8');
+    fs.renameSync(tempFile, STATE_FILE);
+  } catch (err) {
+    console.error('Error guardando estado:', err.message);
+  }
+}
+
+function cleanupExpiredVideos() {
+  const cutoff = Date.now() - SEVEN_DAYS_MS;
+  let changed = false;
+
+  const remaining = [];
+  for (const item of queueItems) {
+    const createdAt = Number(item?.createdAt) || 0;
+    if (createdAt > 0 && createdAt < cutoff) {
+      if (item.diskFile) {
+        removeUploadedFile(path.join(UPLOADS_DIR, item.diskFile));
+      }
+      changed = true;
+    } else {
+      remaining.push(item);
+    }
+  }
+
+  if (changed) {
+    queueItems = remaining;
+    saveState();
+  }
+}
+
+function loadState() {
+  if (!fs.existsSync(STATE_FILE)) {
+    saveState();
+    return;
+  }
+
+  try {
+    const raw = fs.readFileSync(STATE_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+
+    if (Array.isArray(parsed?.queueItems)) {
+      queueItems = parsed.queueItems.filter((item) => {
+        if (!item || !item.id || !item.diskFile) return false;
+        const fullPath = path.join(UPLOADS_DIR, item.diskFile);
+        return fs.existsSync(fullPath);
+      });
+    }
+
+    if (parsed?.cooldownSettings && typeof parsed.cooldownSettings === 'object') {
+      const mins = Number(parsed.cooldownSettings.minutes);
+      cooldownSettings = {
+        enabled: typeof parsed.cooldownSettings.enabled === 'boolean' ? parsed.cooldownSettings.enabled : true,
+        minutes: Number.isFinite(mins) && mins > 0 ? Math.min(10080, Math.round(mins)) : 120
+      };
+    }
+
+    if (Array.isArray(parsed?.lastUploadByUser)) {
+      lastUploadByUser.clear();
+      const maxAgeMs = Math.max(cooldownSettings.minutes * 60 * 1000, SEVEN_DAYS_MS);
+      const now = Date.now();
+      for (const entry of parsed.lastUploadByUser) {
+        if (!Array.isArray(entry) || entry.length < 2) continue;
+        const key = normalizeUsername(entry[0]);
+        const ts = Number(entry[1]);
+        if (key && Number.isFinite(ts) && ts > 0 && (now - ts) <= maxAgeMs) {
+          lastUploadByUser.set(key, ts);
+        }
+      }
+    }
+
+    cleanupExpiredVideos();
+  } catch (err) {
+    console.error('Error cargando estado, iniciando limpio:', err.message);
+  }
+}
+
+loadState();
+setInterval(cleanupExpiredVideos, 60 * 60 * 1000);
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
@@ -106,6 +196,7 @@ app.post('/api/queue', upload.single('file'), (req, res) => {
   };
 
   queueItems.push(item);
+  saveState();
   return res.status(201).json(item);
 });
 
@@ -131,6 +222,7 @@ app.delete('/api/queue/:id', (req, res) => {
 
   const [removed] = queueItems.splice(idx, 1);
   removeUploadedFile(path.join(UPLOADS_DIR, removed.diskFile));
+  saveState();
 
   return res.json({ ok: true, deleted: true });
 });
@@ -145,6 +237,7 @@ app.put('/api/settings/cooldown', (req, res) => {
   const minutes = Number.isFinite(rawMins) && rawMins > 0 ? Math.min(10080, Math.round(rawMins)) : cooldownSettings.minutes;
 
   cooldownSettings = { enabled, minutes };
+  saveState();
   res.json(cooldownSettings);
 });
 
