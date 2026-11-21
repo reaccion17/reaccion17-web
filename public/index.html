@@ -1303,6 +1303,11 @@
 
         let videos = [];
         let audioCtx = null;
+        let analyserNode = null;
+        const linkedVideoSources = new WeakMap();
+        let activeMeterVideo = null;
+        let meterCorsBlocked = false;
+        let meterRafId = null;
         let scrollSyncRaf = null;
         let pollTimer = null;
 
@@ -1382,6 +1387,76 @@
             }
             saveVolumeState();
             applyVolumeToAllVideos();
+        }
+
+        function startAudioMeterForVideo(videoEl) {
+            const meterFill = document.getElementById('global-audio-meter-fill');
+            if (!meterFill || !videoEl) return;
+
+            activeMeterVideo = videoEl;
+            meterCorsBlocked = false;
+
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    if (!audioCtx) {
+                        audioCtx = new AudioContextClass();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume().catch(() => {});
+                    }
+                    if (!analyserNode) {
+                        analyserNode = audioCtx.createAnalyser();
+                        analyserNode.fftSize = 256;
+                        analyserNode.smoothingTimeConstant = 0.78;
+                        analyserNode.connect(audioCtx.destination);
+                    }
+
+                    let source = linkedVideoSources.get(videoEl);
+                    if (!source) {
+                        source = audioCtx.createMediaElementSource(videoEl);
+                        source.connect(analyserNode);
+                        linkedVideoSources.set(videoEl, source);
+                    }
+                }
+            } catch {
+                meterCorsBlocked = true;
+            }
+
+            if (meterRafId) return;
+
+            const freqData = analyserNode ? new Uint8Array(analyserNode.frequencyBinCount) : null;
+
+            const updateMeter = () => {
+                const adminActive = document.getElementById('view-admin').classList.contains('active');
+                const currentActiveVideo = document.querySelectorAll('.video-card video')[getActiveFeedIndex()] || activeMeterVideo;
+                const isAudible = adminActive &&
+                    currentActiveVideo &&
+                    !currentActiveVideo.paused &&
+                    !currentActiveVideo.muted &&
+                    currentActiveVideo.volume > 0;
+
+                if (!isAudible) {
+                    meterFill.style.width = '0%';
+                } else if (!meterCorsBlocked && analyserNode && freqData && audioCtx && audioCtx.state === 'running') {
+                    analyserNode.getByteFrequencyData(freqData);
+                    let sum = 0;
+                    for (let i = 0; i < freqData.length; i++) {
+                        sum += freqData[i];
+                    }
+                    const avg = sum / freqData.length;
+                    const levelPct = Math.min(100, Math.round((avg / 128) * 100));
+                    meterFill.style.width = `${levelPct}%`;
+                } else {
+                    const pulse = 35 + Math.abs(Math.sin(performance.now() * 0.008)) * 45;
+                    const levelPct = Math.min(100, Math.round(pulse * currentActiveVideo.volume));
+                    meterFill.style.width = `${levelPct}%`;
+                }
+
+                meterRafId = requestAnimationFrame(updateMeter);
+            };
+
+            meterRafId = requestAnimationFrame(updateMeter);
         }
 
         loadSavedVolumeState();
@@ -1964,15 +2039,22 @@
                 if (idx === activeIndex && targetSrc) {
                     const currentSrc = videoEl.getAttribute('src') || '';
                     if (currentSrc !== targetSrc) {
+                        videoEl.crossOrigin = 'anonymous';
                         videoEl.setAttribute('src', targetSrc);
                         videoEl.volume = volumeState.volume;
                         videoEl.muted = volumeState.muted;
-                        videoEl.play().catch(() => {});
+                        videoEl.play().then(() => {
+                            startAudioMeterForVideo(videoEl);
+                        }).catch(() => {});
                     } else {
                         videoEl.volume = volumeState.volume;
                         videoEl.muted = volumeState.muted;
                         if (videoEl.paused && videoEl.currentTime === 0) {
-                            videoEl.play().catch(() => {});
+                            videoEl.play().then(() => {
+                                startAudioMeterForVideo(videoEl);
+                            }).catch(() => {});
+                        } else if (!videoEl.paused) {
+                            startAudioMeterForVideo(videoEl);
                         }
                     }
                 } else {
@@ -2253,7 +2335,7 @@
                     </div>
                 </div>
                 <div class="player-container" onclick="unlockAudioContext()">
-                    <video data-src="${src}" controls playsinline preload="metadata"></video>
+                    <video crossorigin="anonymous" data-src="${src}" controls playsinline preload="metadata"></video>
                 </div>
                 <div class="video-actions">
                     <button type="button" onclick="deleteVideo('${v.id}')" class="btn-small btn-seen">✓ Visto</button>
@@ -2269,6 +2351,9 @@
                     volumeState.muted = videoEl.muted;
                     saveVolumeState();
                     applyVolumeToAllVideos();
+                });
+                videoEl.addEventListener('play', () => {
+                    startAudioMeterForVideo(videoEl);
                 });
             }
 
