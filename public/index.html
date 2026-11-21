@@ -457,15 +457,156 @@
             font-size: 0.95rem;
         }
 
-        input[type="file"] {
-            padding: 9px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
         input:focus {
             outline: none;
             border-color: var(--accent);
+        }
+
+        .file-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .file-picker-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px dashed rgba(145, 70, 255, 0.42);
+            background: #0e0e10;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .file-picker-box:hover,
+        .file-picker-box.has-file {
+            border-style: solid;
+            border-color: rgba(145, 70, 255, 0.75);
+            background: #14111d;
+        }
+
+        .file-picker-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent) 0%, #6d28d9 100%);
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+            user-select: none;
+            transition: transform 0.12s ease, filter 0.15s ease;
+        }
+
+        .file-picker-btn:hover {
+            filter: brightness(1.12);
+            transform: translateY(-1px);
+        }
+
+        .file-picker-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .file-picker-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-picker-name.empty {
+            color: var(--text-muted);
+        }
+
+        .file-picker-size {
+            font-size: 0.74rem;
+            color: #9e9ea8;
+        }
+
+        .file-clear-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 7px;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+
+        .file-clear-btn:hover {
+            background: rgba(255, 107, 107, 0.16);
+            border-color: rgba(255, 107, 107, 0.45);
+            color: #ff9b9b;
+        }
+
+        .upload-progress-wrap {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #111115;
+            border: 1px solid rgba(145, 70, 255, 0.35);
+        }
+
+        .upload-progress-wrap.active {
+            display: block;
+        }
+
+        .upload-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            margin-bottom: 7px;
+            gap: 8px;
+        }
+
+        .upload-progress-label {
+            color: #e4d4ff;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .upload-progress-percent {
+            color: #7df7c6;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        .upload-progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            overflow: hidden;
+        }
+
+        .upload-progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent) 0%, #00f593 100%);
+            transition: width 0.12s ease-out;
         }
 
         .btn-submit {
@@ -868,14 +1009,32 @@
                 </p>
                 <form id="video-form">
                     <div class="form-group">
-                        <label>Nombre de usuario</label>
+                        <label for="username">Nombre de usuario</label>
                         <input type="text" id="username" required>
                     </div>
                     <div class="form-group">
-                        <label>Archivo de video (.mp4, .webm, .mov)</label>
-                        <input type="file" id="video-file" accept="video/mp4,video/webm,video/quicktime,video/*" required>
+                        <label for="video-file">Archivo de video (.mp4, .webm, .mov)</label>
+                        <input type="file" id="video-file" class="file-input-hidden" accept="video/mp4,video/webm,video/quicktime,video/*" required>
+                        <div id="file-picker-box" class="file-picker-box">
+                            <label for="video-file" class="file-picker-btn">Seleccionar video</label>
+                            <div class="file-picker-info">
+                                <span id="file-picker-name" class="file-picker-name empty">Ningún archivo seleccionado</span>
+                                <span id="file-picker-size" class="file-picker-size">MP4, WEBM o MOV</span>
+                            </div>
+                            <button type="button" id="file-clear-btn" class="file-clear-btn" onclick="clearSelectedFile()" style="display: none;">Quitar</button>
+                        </div>
                     </div>
                     <button type="submit" id="btn-submit-video" class="btn-submit">Enviar a la cola</button>
+
+                    <div id="upload-progress-wrap" class="upload-progress-wrap" aria-live="polite">
+                        <div class="upload-progress-header">
+                            <span id="upload-progress-label" class="upload-progress-label">Subiendo video...</span>
+                            <span id="upload-progress-percent" class="upload-progress-percent">0%</span>
+                        </div>
+                        <div class="upload-progress-track">
+                            <div id="upload-progress-fill" class="upload-progress-fill"></div>
+                        </div>
+                    </div>
                 </form>
                 <div id="status-msg" class="status-msg"></div>
             </div>
@@ -991,6 +1150,60 @@
         const savedUsername = localStorage.getItem('denora_last_username');
         if (savedUsername) {
             document.getElementById('username').value = savedUsername;
+        }
+
+        function formatFileSize(bytes) {
+            if (!Number.isFinite(bytes) || bytes <= 0) return '';
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function updateFilePickerUI() {
+            const fileInput = document.getElementById('video-file');
+            const boxEl = document.getElementById('file-picker-box');
+            const nameEl = document.getElementById('file-picker-name');
+            const sizeEl = document.getElementById('file-picker-size');
+            const clearBtn = document.getElementById('file-clear-btn');
+            const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+
+            if (!boxEl || !nameEl || !sizeEl) return;
+
+            if (file) {
+                boxEl.classList.add('has-file');
+                nameEl.textContent = file.name;
+                nameEl.classList.remove('empty');
+                sizeEl.textContent = formatFileSize(file.size) || 'Video listo para enviar';
+                if (clearBtn) clearBtn.style.display = 'inline-block';
+            } else {
+                boxEl.classList.remove('has-file');
+                nameEl.textContent = 'Ningún archivo seleccionado';
+                nameEl.classList.add('empty');
+                sizeEl.textContent = 'MP4, WEBM o MOV';
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
+        }
+
+        function clearSelectedFile() {
+            const fileInput = document.getElementById('video-file');
+            if (fileInput) fileInput.value = '';
+            updateFilePickerUI();
+        }
+
+        document.getElementById('video-file').addEventListener('change', updateFilePickerUI);
+
+        function setUploadProgressUI(visible, percent = 0, label = 'Subiendo video...') {
+            const wrapEl = document.getElementById('upload-progress-wrap');
+            const labelEl = document.getElementById('upload-progress-label');
+            const percentEl = document.getElementById('upload-progress-percent');
+            const fillEl = document.getElementById('upload-progress-fill');
+
+            if (!wrapEl || !labelEl || !percentEl || !fillEl) return;
+
+            wrapEl.classList.toggle('active', Boolean(visible));
+            const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+            labelEl.textContent = label;
+            percentEl.textContent = `${clamped}%`;
+            fillEl.style.width = `${clamped}%`;
         }
 
         function unlockAudioContext() {
@@ -1534,6 +1747,46 @@
             return '';
         }
 
+        function uploadQueueFormWithProgress(formData) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${API_BASE}/api/queue`);
+
+                setUploadProgressUI(true, 0, 'Subiendo video...');
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable && event.total > 0) {
+                        const pct = Math.round((event.loaded / event.total) * 100);
+                        setUploadProgressUI(
+                            true,
+                            pct,
+                            pct >= 100 ? 'Procesando en el servidor...' : 'Subiendo video...'
+                        );
+                    }
+                };
+
+                xhr.onload = () => {
+                    let parsed = {};
+                    try {
+                        parsed = xhr.responseText ? JSON.parse(xhr.responseText) : {};
+                    } catch {
+                        parsed = {};
+                    }
+                    resolve({
+                        ok: xhr.status >= 200 && xhr.status < 300,
+                        status: xhr.status,
+                        data: parsed
+                    });
+                };
+
+                xhr.onerror = () => {
+                    reject(new Error('Error de conexión al subir el video'));
+                };
+
+                xhr.send(formData);
+            });
+        }
+
         document.getElementById('video-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -1549,19 +1802,19 @@
 
             localStorage.setItem('denora_last_username', username);
             if (submitBtn) submitBtn.disabled = true;
+            status.classList.remove('error');
+            status.textContent = '';
 
             try {
                 const formData = new FormData();
                 formData.append('user', username);
                 formData.append('file', file);
 
-                const resp = await fetch(`${API_BASE}/api/queue`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const result = await uploadQueueFormWithProgress(formData);
 
-                if (resp.ok) {
-                    const created = await resp.json().catch(() => ({}));
+                if (result.ok) {
+                    setUploadProgressUI(true, 100, '¡Subida completada!');
+                    const created = result.data || {};
                     const id = created.id || `vid_${Date.now()}`;
                     recordMySubmission({
                         id,
@@ -1571,6 +1824,7 @@
                     });
                     await refreshQueue();
                 } else {
+                    setUploadProgressUI(true, 100, 'Guardado en cola local');
                     const createdAt = Date.now();
                     const localId = `local_${createdAt}_${Math.random().toString(36).slice(2, 7)}`;
                     const blobUrl = URL.createObjectURL(file);
@@ -1599,12 +1853,15 @@
                 }
 
                 fileInput.value = '';
+                updateFilePickerUI();
                 status.classList.remove('error');
                 status.textContent = '✅ ¡Video agregado a la cola!';
                 setTimeout(() => {
                     status.textContent = '';
-                }, 3000);
+                    setUploadProgressUI(false, 0, 'Subiendo video...');
+                }, 2400);
             } catch {
+                setUploadProgressUI(false, 0, 'Subiendo video...');
                 status.classList.add('error');
                 status.textContent = '❌ Error al preparar el video.';
                 setTimeout(() => {
