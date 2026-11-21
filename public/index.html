@@ -392,12 +392,96 @@
             flex-wrap: wrap;
         }
 
-        .feed-users-panel {
+        .feed-volume-panel {
             position: fixed;
             left: 20px;
             top: 174px;
             width: 288px;
-            max-height: calc(100vh - 192px);
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(145, 70, 255, 0.30);
+            border-radius: 16px;
+            padding: 13px 15px;
+            display: none;
+            flex-direction: column;
+            gap: 9px;
+            z-index: 15;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .feed-volume-panel.visible-in-feed {
+            display: flex;
+        }
+
+        .volume-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mute-toggle {
+            background: #26262c;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .btn-mute-toggle:hover {
+            background: #32323a;
+        }
+
+        .volume-range {
+            flex: 1;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .volume-pct-label {
+            min-width: 38px;
+            text-align: right;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #d8bfff;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .audio-meter-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-meter-label {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .audio-meter-track {
+            flex: 1;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            overflow: hidden;
+        }
+
+        .audio-meter-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent) 0%, #00f593 100%);
+            transition: width 60ms linear;
+        }
+
+        .feed-users-panel {
+            position: fixed;
+            left: 20px;
+            top: 288px;
+            width: 288px;
+            max-height: calc(100vh - 306px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -943,6 +1027,7 @@
         @media (max-width: 1120px) {
             .user-queue-panel.visible-in-chat,
             .feed-cooldown-panel.visible-in-feed,
+            .feed-volume-panel.visible-in-feed,
             .feed-users-panel.visible-in-feed {
                 position: static;
                 width: 100%;
@@ -1011,7 +1096,7 @@
             <div class="card">
                 <h2 style="margin-bottom: 8px;">Enviar videos a la reaccion</h2>
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
-                    ¡Súbelo aquí para que entre a las reacciones! Queda disponible en la cola para verse dentro de los próximos 7 días.
+                    ¡Súbelo aquí para que entre a las reacciones! Queda disponible en la cola para verse dentro de los próximos 8 días.
                 </p>
                 <form id="video-form">
                     <div class="form-group">
@@ -1075,6 +1160,23 @@
             <input type="number" id="cooldown-minutes-input" class="cooldown-mins-input" min="1" max="10080" value="120" title="Minutos de cooldown">
             <button type="button" id="btn-cd-enable" class="btn-cd enable active" onclick="setCooldownState(true)">Activar</button>
             <button type="button" id="btn-cd-disable" class="btn-cd disable" onclick="setCooldownState(false)">Desactivar</button>
+        </div>
+    </aside>
+
+    <aside id="feed-volume-panel" class="feed-volume-panel" aria-label="Volumen global y medidor de audio">
+        <div class="feed-cooldown-header">
+            <span>🔊 Volumen global</span>
+            <span id="volume-pct-label" class="volume-pct-label">80%</span>
+        </div>
+        <div class="volume-slider-row">
+            <button type="button" id="btn-mute-toggle" class="btn-mute-toggle" onclick="toggleGlobalMute()" title="Silenciar o activar audio">🔊</button>
+            <input type="range" id="global-volume-slider" class="volume-range" min="0" max="1" step="0.01" value="0.8" aria-label="Volumen de todos los videos">
+        </div>
+        <div class="audio-meter-row">
+            <span class="audio-meter-label">Medidor</span>
+            <div class="audio-meter-track">
+                <div id="global-audio-meter-fill" class="audio-meter-fill"></div>
+            </div>
         </div>
     </aside>
 
@@ -1146,16 +1248,163 @@
         const ADMIN_PIN = 'denora2026';
         const MY_HISTORY_KEY = 'reaccion17_downloaded_history_v1';
         const COOLDOWN_TRACK_KEY = 'reaccion17_last_upload_by_user_v1';
+        const VOLUME_STORAGE_KEY = 'reaccion17_player_volume_v1';
+        const MUTED_STORAGE_KEY = 'reaccion17_player_muted_v1';
 
         let cooldownConfig = {
             enabled: true,
             minutes: 120
         };
 
+        let volumeState = {
+            volume: 0.8,
+            muted: false
+        };
+
         let videos = [];
         let audioCtx = null;
+        let analyserNode = null;
+        let connectedVideoEl = null;
+        let meterRafId = null;
         let scrollSyncRaf = null;
         let pollTimer = null;
+
+        function loadSavedVolumeState() {
+            try {
+                const rawVol = parseFloat(localStorage.getItem(VOLUME_STORAGE_KEY));
+                const rawMuted = localStorage.getItem(MUTED_STORAGE_KEY) === 'true';
+                volumeState = {
+                    volume: Number.isFinite(rawVol) ? Math.min(1, Math.max(0, rawVol)) : 0.8,
+                    muted: rawMuted
+                };
+            } catch {
+                volumeState = { volume: 0.8, muted: false };
+            }
+        }
+
+        function saveVolumeState() {
+            try {
+                localStorage.setItem(VOLUME_STORAGE_KEY, String(volumeState.volume));
+                localStorage.setItem(MUTED_STORAGE_KEY, String(volumeState.muted));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        function renderVolumePanelUI() {
+            const slider = document.getElementById('global-volume-slider');
+            const pctLabel = document.getElementById('volume-pct-label');
+            const muteBtn = document.getElementById('btn-mute-toggle');
+
+            if (slider) {
+                slider.value = String(volumeState.volume);
+            }
+            if (pctLabel) {
+                const pct = Math.round(volumeState.volume * 100);
+                pctLabel.textContent = volumeState.muted || pct === 0 ? 'Silencio' : `${pct}%`;
+            }
+            if (muteBtn) {
+                muteBtn.textContent = volumeState.muted || volumeState.volume === 0 ? '🔇' : '🔊';
+            }
+        }
+
+        function applyVolumeToAllVideos() {
+            document.querySelectorAll('.video-card video').forEach(videoEl => {
+                if (videoEl.volume !== volumeState.volume) {
+                    videoEl.volume = volumeState.volume;
+                }
+                if (videoEl.muted !== volumeState.muted) {
+                    videoEl.muted = volumeState.muted;
+                }
+            });
+            renderVolumePanelUI();
+        }
+
+        function setGlobalVolume(newVol, muteOverride = null) {
+            const clamped = Math.min(1, Math.max(0, Number(newVol)));
+            volumeState.volume = Number.isFinite(clamped) ? clamped : 0.8;
+            if (typeof muteOverride === 'boolean') {
+                volumeState.muted = muteOverride;
+            } else if (volumeState.volume > 0 && volumeState.muted) {
+                volumeState.muted = false;
+            }
+            saveVolumeState();
+            applyVolumeToAllVideos();
+        }
+
+        function toggleGlobalMute() {
+            if (!volumeState.muted && volumeState.volume === 0) {
+                volumeState.volume = 0.5;
+                volumeState.muted = false;
+            } else {
+                volumeState.muted = !volumeState.muted;
+            }
+            saveVolumeState();
+            applyVolumeToAllVideos();
+        }
+
+        function startAudioMeterForVideo(videoEl) {
+            const meterFill = document.getElementById('global-audio-meter-fill');
+            if (!meterFill || !videoEl) return;
+
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+
+                if (!audioCtx) {
+                    audioCtx = new AudioContextClass();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(() => {});
+                }
+
+                if (!analyserNode) {
+                    analyserNode = audioCtx.createAnalyser();
+                    analyserNode.fftSize = 256;
+                    analyserNode.connect(audioCtx.destination);
+                }
+
+                if (connectedVideoEl !== videoEl) {
+                    try {
+                        const source = audioCtx.createMediaElementSource(videoEl);
+                        source.connect(analyserNode);
+                        connectedVideoEl = videoEl;
+                    } catch {
+                        // Si ya estaba enlazado o bloqueado por CORS, mantener el control de volumen
+                    }
+                }
+
+                if (!meterRafId) {
+                    const freqData = new Uint8Array(analyserNode.frequencyBinCount);
+                    const updateMeter = () => {
+                        const adminActive = document.getElementById('view-admin').classList.contains('active');
+                        if (!adminActive || !connectedVideoEl || connectedVideoEl.paused || volumeState.muted) {
+                            meterFill.style.width = '0%';
+                        } else {
+                            analyserNode.getByteFrequencyData(freqData);
+                            let sum = 0;
+                            for (let i = 0; i < freqData.length; i++) {
+                                sum += freqData[i];
+                            }
+                            const avg = sum / freqData.length;
+                            const levelPct = Math.min(100, Math.round((avg / 140) * 100));
+                            meterFill.style.width = `${levelPct}%`;
+                        }
+                        meterRafId = requestAnimationFrame(updateMeter);
+                    };
+                    meterRafId = requestAnimationFrame(updateMeter);
+                }
+            } catch {
+                // Ignorar si el navegador bloquea el análisis de audio
+            }
+        }
+
+        loadSavedVolumeState();
+        renderVolumePanelUI();
+
+        document.getElementById('global-volume-slider').addEventListener('input', (e) => {
+            setGlobalVolume(parseFloat(e.target.value));
+        });
 
         const savedUsername = localStorage.getItem('denora_last_username');
         if (savedUsername) {
@@ -1574,6 +1823,7 @@
 
         function renderFeedUsersPanel() {
             const cdPanel = document.getElementById('feed-cooldown-panel');
+            const volPanel = document.getElementById('feed-volume-panel');
             const panel = document.getElementById('feed-users-panel');
             const listEl = document.getElementById('feed-users-list');
             const totalBadge = document.getElementById('feed-users-total-badge');
@@ -1581,6 +1831,9 @@
 
             if (cdPanel) {
                 cdPanel.classList.toggle('visible-in-feed', Boolean(adminActive));
+            }
+            if (volPanel) {
+                volPanel.classList.toggle('visible-in-feed', Boolean(adminActive));
             }
             if (!panel || !listEl || !totalBadge) return;
 
@@ -1657,6 +1910,8 @@
                     videoEl.load();
                 }
             });
+            const meterFill = document.getElementById('global-audio-meter-fill');
+            if (meterFill) meterFill.style.width = '0%';
         }
 
         function switchView(view) {
@@ -1674,6 +1929,7 @@
 
             if (view === 'admin') {
                 renderCooldownControls();
+                renderVolumePanelUI();
                 renderFeedUsersPanel();
                 renderFeed();
             } else {
@@ -1724,12 +1980,17 @@
                     const currentSrc = videoEl.getAttribute('src') || '';
                     if (currentSrc !== targetSrc) {
                         videoEl.setAttribute('src', targetSrc);
-                        videoEl.muted = false;
+                        videoEl.volume = volumeState.volume;
+                        videoEl.muted = volumeState.muted;
                         videoEl.play().catch(() => {});
-                    } else if (videoEl.paused && videoEl.currentTime === 0) {
-                        videoEl.muted = false;
-                        videoEl.play().catch(() => {});
+                    } else {
+                        videoEl.volume = volumeState.volume;
+                        videoEl.muted = volumeState.muted;
+                        if (videoEl.paused && videoEl.currentTime === 0) {
+                            videoEl.play().catch(() => {});
+                        }
                     }
+                    startAudioMeterForVideo(videoEl);
                 } else {
                     if (!videoEl.paused) {
                         videoEl.pause();
@@ -1740,6 +2001,7 @@
                     }
                 }
             });
+            renderVolumePanelUI();
         }
 
         function bindFeedScrollSync() {
@@ -2013,6 +2275,21 @@
                 </div>
             `;
 
+            const videoEl = card.querySelector('video');
+            if (videoEl) {
+                videoEl.volume = volumeState.volume;
+                videoEl.muted = volumeState.muted;
+                videoEl.addEventListener('volumechange', () => {
+                    volumeState.volume = videoEl.volume;
+                    volumeState.muted = videoEl.muted;
+                    saveVolumeState();
+                    applyVolumeToAllVideos();
+                });
+                videoEl.addEventListener('play', () => {
+                    startAudioMeterForVideo(videoEl);
+                });
+            }
+
             return card;
         }
 
@@ -2075,6 +2352,7 @@
             });
 
             updateSideNavVisibility();
+            applyVolumeToAllVideos();
             if (structureChanged) {
                 syncActiveVideoFrame();
             }
