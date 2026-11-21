@@ -521,7 +521,7 @@
             left: 20px;
             top: 308px;
             width: 288px;
-            max-height: calc(100vh - 326px);
+            max-height: calc(100vh - 348px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -1023,6 +1023,18 @@
             transform: scale(0.96);
         }
 
+        .creator-credit {
+            position: fixed;
+            left: 20px;
+            bottom: 10px;
+            font-size: 0.72rem;
+            letter-spacing: 0.02em;
+            color: rgba(173, 173, 184, 0.65);
+            z-index: 12;
+            pointer-events: none;
+            user-select: none;
+        }
+
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -1075,6 +1087,13 @@
                 margin: 12px auto 0 auto;
                 max-height: none;
                 box-shadow: none;
+            }
+            .creator-credit {
+                position: static;
+                width: 100%;
+                max-width: 480px;
+                margin: 14px auto 4px auto;
+                text-align: center;
             }
             body {
                 height: auto;
@@ -1238,6 +1257,8 @@
         <button onclick="scrollVideo(-1)" class="side-btn" title="Video anterior (Flecha Arriba)">↑</button>
         <button onclick="scrollVideo(1)" class="side-btn" title="Siguiente video (Flecha Abajo)">↓</button>
     </div>
+
+    <div class="creator-credit">by RaFah</div>
 
     <div id="admin-auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div class="modal-box">
