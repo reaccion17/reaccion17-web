@@ -18,6 +18,24 @@ let cooldownSettings = {
   minutes: 120
 };
 
+// Guarda timestamp (ms) del último envío aceptado por usuario normalizado
+const lastUploadByUser = new Map();
+
+function normalizeUsername(name) {
+  return String(name || '').trim().replace(/^@+/, '').toLowerCase();
+}
+
+function removeUploadedFile(filePath) {
+  if (!filePath) return;
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch {
+    // Ignorar si el archivo está en uso temporalmente
+  }
+}
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
@@ -42,20 +60,49 @@ app.get('/api/queue', (_req, res) => {
 app.post('/api/queue', upload.single('file'), (req, res) => {
   const user = String(req.body?.user || '').trim();
   if (!user || !req.file) {
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
+    removeUploadedFile(req.file?.path);
     return res.status(400).json({ ok: false, error: 'Falta usuario o archivo de video.' });
   }
 
-  const id = `vid_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const userKey = normalizeUsername(user);
+  const now = Date.now();
+
+  if (cooldownSettings.enabled && userKey) {
+    const cooldownMs = cooldownSettings.minutes * 60 * 1000;
+    const lastUploadAt = lastUploadByUser.get(userKey);
+
+    if (typeof lastUploadAt === 'number') {
+      const elapsed = now - lastUploadAt;
+      if (elapsed < cooldownMs) {
+        removeUploadedFile(req.file.path);
+        const remainingMs = cooldownMs - elapsed;
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        const minsLeft = Math.floor(remainingSeconds / 60);
+        const secsLeft = remainingSeconds % 60;
+
+        return res.status(429).json({
+          ok: false,
+          error: 'COOLDOWN_ACTIVE',
+          message: `⏳ Cooldown activo: espera ${minsLeft}m ${secsLeft}s para volver a enviar videos.`,
+          remainingMs,
+          remainingSeconds
+        });
+      }
+    }
+  }
+
+  if (userKey) {
+    lastUploadByUser.set(userKey, now);
+  }
+
+  const id = `vid_${now}_${Math.random().toString(36).slice(2, 6)}`;
   const item = {
     id,
     user,
     fileName: req.file.originalname || req.file.filename,
     diskFile: req.file.filename,
     streamUrl: `/api/queue/${encodeURIComponent(id)}/stream`,
-    createdAt: Date.now()
+    createdAt: now
   };
 
   queueItems.push(item);
@@ -83,15 +130,7 @@ app.delete('/api/queue/:id', (req, res) => {
   }
 
   const [removed] = queueItems.splice(idx, 1);
-  const filePath = path.join(UPLOADS_DIR, removed.diskFile);
-
-  if (fs.existsSync(filePath)) {
-    try {
-      fs.unlinkSync(filePath);
-    } catch {
-      // Ignorar si está en uso temporalmente
-    }
-  }
+  removeUploadedFile(path.join(UPLOADS_DIR, removed.diskFile));
 
   return res.json({ ok: true, deleted: true });
 });

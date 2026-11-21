@@ -1145,6 +1145,7 @@
         const API_BASE = '';
         const ADMIN_PIN = 'denora2026';
         const MY_HISTORY_KEY = 'reaccion17_downloaded_history_v1';
+        const COOLDOWN_TRACK_KEY = 'reaccion17_last_upload_by_user_v1';
 
         let cooldownConfig = {
             enabled: true,
@@ -1159,6 +1160,65 @@
         const savedUsername = localStorage.getItem('denora_last_username');
         if (savedUsername) {
             document.getElementById('username').value = savedUsername;
+        }
+
+        function normalizeUser(name) {
+            return String(name || '').trim().replace(/^@+/, '').toLowerCase();
+        }
+
+        function loadCooldownMap() {
+            try {
+                const raw = localStorage.getItem(COOLDOWN_TRACK_KEY);
+                const parsed = raw ? JSON.parse(raw) : {};
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveCooldownMap(mapObj) {
+            try {
+                localStorage.setItem(COOLDOWN_TRACK_KEY, JSON.stringify(mapObj));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        function setUserLastUploadTime(username, timestampMs = Date.now()) {
+            const key = normalizeUser(username);
+            if (!key) return;
+            const mapObj = loadCooldownMap();
+            mapObj[key] = timestampMs;
+            saveCooldownMap(mapObj);
+        }
+
+        function setRemainingCooldownMs(username, remainingMs) {
+            const key = normalizeUser(username);
+            if (!key) return;
+            const totalMs = (Number(cooldownConfig.minutes) || 120) * 60 * 1000;
+            const clampedRemaining = Math.max(0, Math.min(totalMs, Number(remainingMs) || 0));
+            const estimatedLastUploadMs = Date.now() - (totalMs - clampedRemaining);
+            setUserLastUploadTime(key, estimatedLastUploadMs);
+        }
+
+        function getRemainingLocalCooldownMs(username) {
+            if (!cooldownConfig.enabled) return 0;
+            const key = normalizeUser(username);
+            if (!key) return 0;
+            const mapObj = loadCooldownMap();
+            const lastMs = Number(mapObj[key]);
+            if (!Number.isFinite(lastMs) || lastMs <= 0) return 0;
+            const totalMs = (Number(cooldownConfig.minutes) || 120) * 60 * 1000;
+            const remaining = totalMs - (Date.now() - lastMs);
+            return remaining > 0 ? remaining : 0;
+        }
+
+        function formatRemainingTime(ms) {
+            const totalSec = Math.max(1, Math.ceil(ms / 1000));
+            const mins = Math.floor(totalSec / 60);
+            const secs = totalSec % 60;
+            if (mins > 0) return `${mins}m ${secs}s`;
+            return `${secs}s`;
         }
 
         function formatFileSize(bytes) {
@@ -1378,10 +1438,6 @@
             if (!pill) return;
             const count = videos.length;
             pill.textContent = `Cola: ${count} ${count === 1 ? 'video' : 'videos'}`;
-        }
-
-        function normalizeUser(name) {
-            return String(name || '').trim().replace(/^@+/, '').toLowerCase();
         }
 
         function loadMyHistory() {
@@ -1813,6 +1869,15 @@
 
             if (!username || !file) return;
 
+            await loadCooldownSettings();
+
+            const remainingLocalMs = getRemainingLocalCooldownMs(username);
+            if (remainingLocalMs > 0) {
+                status.classList.add('error');
+                status.textContent = `⏳ Cooldown activo: espera ${formatRemainingTime(remainingLocalMs)} para volver a enviar.`;
+                return;
+            }
+
             localStorage.setItem('denora_last_username', username);
             if (submitBtn) submitBtn.disabled = true;
             status.classList.remove('error');
@@ -1826,6 +1891,7 @@
                 const result = await uploadQueueFormWithProgress(formData);
 
                 if (result.ok) {
+                    setUserLastUploadTime(username, Date.now());
                     setUploadProgressUI(true, 100, '¡Subida completada!');
                     const created = result.data || {};
                     const id = created.id || `vid_${Date.now()}`;
@@ -1836,7 +1902,18 @@
                         createdAt: created.createdAt || Date.now()
                     });
                     await refreshQueue();
+                } else if (result.status === 429) {
+                    setUploadProgressUI(false, 0, 'Subiendo video...');
+                    const serverMs = Number(result.data?.remainingMs);
+                    const waitMs = Number.isFinite(serverMs) && serverMs > 0
+                        ? serverMs
+                        : (Number(cooldownConfig.minutes) || 120) * 60 * 1000;
+                    setRemainingCooldownMs(username, waitMs);
+                    status.classList.add('error');
+                    status.textContent = result.data?.message || `⏳ Cooldown activo: espera ${formatRemainingTime(waitMs)} para volver a enviar.`;
+                    return;
                 } else {
+                    setUserLastUploadTime(username, Date.now());
                     setUploadProgressUI(true, 100, 'Guardado en cola local');
                     const createdAt = Date.now();
                     const localId = `local_${createdAt}_${Math.random().toString(36).slice(2, 7)}`;
