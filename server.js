@@ -24,9 +24,6 @@ const supabase = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_ROLE_KEY || '
   auth: { persistSession: false }
 });
 
-const MAX_AGE_DAYS = 8;
-const MAX_AGE_MS = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
-
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -36,6 +33,7 @@ let cooldownSettings = {
   minutes: 120
 };
 const lastUploadByUser = new Map();
+let stateLoadedSuccessfully = false;
 
 function normalizeUsername(name) {
   return String(name || '').trim().replace(/^@+/, '').toLowerCase();
@@ -103,17 +101,19 @@ async function syncStateToSupabase(payload) {
         upsert: true
       });
     if (error) {
-      console.error('Error guardando estado en Supabase Storage:', error.message);
+      console.error('❌ Error guardando estado en Supabase Storage:', error.message);
+    } else {
+      console.log(`✅ Estado sincronizado en Supabase Storage (${payload.queueItems.length} videos).`);
     }
   } catch (err) {
-    console.error('Excepción guardando estado en Supabase Storage:', err.message);
+    console.error('❌ Excepción guardando estado en Supabase Storage:', err.message);
   }
 }
 
 function saveState() {
   const payload = buildStatePayload();
   writeLocalStateFile(payload);
-  syncStateToSupabase(payload);
+  return syncStateToSupabase(payload);
 }
 
 function hydrateStateFromObject(parsed) {
@@ -139,82 +139,79 @@ function hydrateStateFromObject(parsed) {
 
   if (Array.isArray(parsed.lastUploadByUser)) {
     lastUploadByUser.clear();
-    const maxAgeMs = Math.max(cooldownSettings.minutes * 60 * 1000, MAX_AGE_MS);
+    const cooldownMs = Math.max(cooldownSettings.minutes * 60 * 1000, 24 * 60 * 60 * 1000);
     const now = Date.now();
     for (const entry of parsed.lastUploadByUser) {
       if (!Array.isArray(entry) || entry.length < 2) continue;
       const key = normalizeUsername(entry[0]);
       const ts = Number(entry[1]);
-      if (key && Number.isFinite(ts) && ts > 0 && (now - ts) <= maxAgeMs) {
+      if (key && Number.isFinite(ts) && ts > 0 && (now - ts) <= cooldownMs) {
         lastUploadByUser.set(key, ts);
       }
     }
   }
 }
 
-async function cleanupExpiredVideos() {
-  const cutoff = Date.now() - MAX_AGE_MS;
-  let changed = false;
-
-  const remaining = [];
-  for (const item of queueItems) {
-    const createdAt = Number(item?.createdAt) || 0;
-    if (createdAt > 0 && createdAt < cutoff) {
-      if (item.storagePath) {
-        await deleteStorageObject(item.storagePath);
-      }
-      changed = true;
-    } else {
-      remaining.push(item);
-    }
-  }
-
-  if (changed) {
-    queueItems = remaining;
-    saveState();
-  }
-}
-
 async function loadStateFromSupabase() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return { ok: false, notFound: false, data: null };
+  }
   try {
     const { data, error } = await supabase.storage
       .from(SUPABASE_BUCKET)
       .download(REMOTE_STATE_PATH);
-    if (error || !data) {
-      return null;
+
+    if (error) {
+      const msg = String(error.message || '').toLowerCase();
+      const notFound = msg.includes('not found') || msg.includes('object not found') || error.statusCode === '404' || error.statusCode === 404;
+      if (!notFound) {
+        console.error('⚠️ Error descargando estado desde Supabase Storage:', error.message);
+      }
+      return { ok: false, notFound, data: null };
     }
+
+    if (!data) {
+      return { ok: true, notFound: true, data: null };
+    }
+
     const text = await data.text();
     const parsed = JSON.parse(text);
-    return parsed && typeof parsed === 'object' ? parsed : null;
-  } catch {
-    return null;
+    return {
+      ok: true,
+      notFound: false,
+      data: parsed && typeof parsed === 'object' ? parsed : null
+    };
+  } catch (err) {
+    console.error('⚠️ Excepción leyendo estado desde Supabase Storage:', err.message);
+    return { ok: false, notFound: false, data: null };
   }
 }
 
 async function loadState() {
-  let loadedFromRemote = false;
+  const remoteResult = await loadStateFromSupabase();
 
-  const remoteState = await loadStateFromSupabase();
-  if (remoteState) {
-    hydrateStateFromObject(remoteState);
-    loadedFromRemote = true;
+  if (remoteResult.ok && remoteResult.data) {
+    hydrateStateFromObject(remoteResult.data);
+    stateLoadedSuccessfully = true;
     writeLocalStateFile(buildStatePayload());
+    console.log(`📥 Estado cargado desde Supabase Storage (${queueItems.length} videos).`);
   } else if (fs.existsSync(STATE_FILE)) {
     try {
       const raw = fs.readFileSync(STATE_FILE, 'utf8');
       const parsed = JSON.parse(raw);
       hydrateStateFromObject(parsed);
+      console.log(`📂 Estado cargado desde disco local (${queueItems.length} videos).`);
     } catch (err) {
-      console.error('Error cargando estado local, iniciando limpio:', err.message);
+      console.error('Error cargando estado local:', err.message);
     }
+    if (remoteResult.ok && remoteResult.notFound) {
+      await saveState();
+    }
+  } else if (remoteResult.ok && remoteResult.notFound) {
+    await saveState();
+  } else {
+    console.warn('⚠️ No se pudo leer el estado remoto ni local al iniciar; se evitará sobrescribir hasta tener cambios.');
   }
-
-  if (!loadedFromRemote) {
-    saveState();
-  }
-
-  await cleanupExpiredVideos();
 }
 
 const upload = multer({
@@ -297,7 +294,7 @@ app.post('/api/queue', upload.single('file'), async (req, res) => {
     };
 
     queueItems.push(item);
-    saveState();
+    await saveState();
     return res.status(201).json(item);
   } catch (err) {
     console.error('Error inesperado en POST /api/queue:', err.message);
@@ -334,7 +331,7 @@ app.delete('/api/queue/:id', async (req, res) => {
   } else {
     await deleteFallbackVideoById(removed.id);
   }
-  saveState();
+  await saveState();
 
   return res.json({ ok: true, deleted: true });
 });
@@ -343,22 +340,18 @@ app.get('/api/settings/cooldown', (_req, res) => {
   res.json(cooldownSettings);
 });
 
-app.put('/api/settings/cooldown', (req, res) => {
+app.put('/api/settings/cooldown', async (req, res) => {
   const enabled = typeof req.body?.enabled === 'boolean' ? req.body.enabled : cooldownSettings.enabled;
   const rawMins = Number(req.body?.minutes);
   const minutes = Number.isFinite(rawMins) && rawMins > 0 ? Math.min(10080, Math.round(rawMins)) : cooldownSettings.minutes;
 
   cooldownSettings = { enabled, minutes };
-  saveState();
+  await saveState();
   res.json(cooldownSettings);
 });
 
 loadState().then(() => {
-  setInterval(() => {
-    cleanupExpiredVideos();
-  }, 60 * 60 * 1000);
-
   app.listen(PORT, () => {
-    console.log(`Reaccion17 corriendo en http://localhost:${PORT}`);
+    console.log(`Reaccion17 corriendo en http://localhost:${PORT} (remoteLoaded=${stateLoadedSuccessfully})`);
   });
 });
