@@ -395,7 +395,7 @@
         .feed-volume-panel {
             position: fixed;
             left: 20px;
-            top: 174px;
+            top: 176px;
             width: 288px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
@@ -434,13 +434,53 @@
         }
 
         .volume-range {
+            --vol-pct: 80%;
+            -webkit-appearance: none;
+            appearance: none;
             flex: 1;
-            accent-color: var(--accent);
+            height: 7px;
+            border-radius: 999px;
+            background: linear-gradient(
+                90deg,
+                var(--accent) 0%,
+                #b680ff var(--vol-pct),
+                rgba(255, 255, 255, 0.14) var(--vol-pct),
+                rgba(255, 255, 255, 0.14) 100%
+            );
+            cursor: pointer;
+            outline: none;
+        }
+
+        .volume-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #9146ff;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 8px rgba(145, 70, 255, 0.75);
             cursor: pointer;
         }
 
+        .volume-range::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #9146ff;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 8px rgba(145, 70, 255, 0.75);
+            cursor: pointer;
+        }
+
+        .volume-range::-moz-range-track {
+            height: 7px;
+            border-radius: 999px;
+            background: transparent;
+        }
+
         .volume-pct-label {
-            min-width: 38px;
+            min-width: 44px;
             text-align: right;
             font-size: 0.78rem;
             font-weight: 700;
@@ -479,9 +519,9 @@
         .feed-users-panel {
             position: fixed;
             left: 20px;
-            top: 288px;
+            top: 308px;
             width: 288px;
-            max-height: calc(100vh - 306px);
+            max-height: calc(100vh - 326px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -1296,15 +1336,19 @@
             const pctLabel = document.getElementById('volume-pct-label');
             const muteBtn = document.getElementById('btn-mute-toggle');
 
+            const clampedVol = Math.min(1, Math.max(0, Number(volumeState.volume) || 0));
+            const displayVol = volumeState.muted ? 0 : clampedVol;
+            const pct = Math.round(clampedVol * 100);
+
             if (slider) {
-                slider.value = String(volumeState.volume);
+                slider.value = String(clampedVol);
+                slider.style.setProperty('--vol-pct', `${Math.round(displayVol * 100)}%`);
             }
             if (pctLabel) {
-                const pct = Math.round(volumeState.volume * 100);
                 pctLabel.textContent = volumeState.muted || pct === 0 ? 'Silencio' : `${pct}%`;
             }
             if (muteBtn) {
-                muteBtn.textContent = volumeState.muted || volumeState.volume === 0 ? '🔇' : '🔊';
+                muteBtn.textContent = volumeState.muted || pct === 0 ? '🔇' : '🔊';
             }
         }
 
