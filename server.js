@@ -2,20 +2,31 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const DATA_DIR = path.join(__dirname, 'data');
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || 'reaccion17-videos';
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('⚠️ Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en las variables de entorno.');
+}
+
+const supabase = createClient(SUPABASE_URL || '', SUPABASE_SERVICE_ROLE_KEY || '', {
+  auth: { persistSession: false }
+});
 
 const MAX_AGE_DAYS = 8;
 const MAX_AGE_MS = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
 
 fs.mkdirSync(PUBLIC_DIR, { recursive: true });
-fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 let queueItems = [];
@@ -29,14 +40,21 @@ function normalizeUsername(name) {
   return String(name || '').trim().replace(/^@+/, '').toLowerCase();
 }
 
-function removeUploadedFile(filePath) {
-  if (!filePath) return;
+function getPublicVideoUrl(storagePath) {
+  if (!storagePath) return '';
+  const { data } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(storagePath);
+  return data?.publicUrl || '';
+}
+
+async function deleteStorageObject(storagePath) {
+  if (!storagePath) return;
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
+    if (error) {
+      console.error('Error borrando objeto en Supabase Storage:', error.message);
     }
-  } catch {
-    // Ignorar si el archivo está en uso temporalmente
+  } catch (err) {
+    console.error('Excepción borrando objeto en Supabase Storage:', err.message);
   }
 }
 
@@ -55,7 +73,7 @@ function saveState() {
   }
 }
 
-function cleanupExpiredVideos() {
+async function cleanupExpiredVideos() {
   const cutoff = Date.now() - MAX_AGE_MS;
   let changed = false;
 
@@ -63,8 +81,8 @@ function cleanupExpiredVideos() {
   for (const item of queueItems) {
     const createdAt = Number(item?.createdAt) || 0;
     if (createdAt > 0 && createdAt < cutoff) {
-      if (item.diskFile) {
-        removeUploadedFile(path.join(UPLOADS_DIR, item.diskFile));
+      if (item.storagePath) {
+        await deleteStorageObject(item.storagePath);
       }
       changed = true;
     } else {
@@ -78,7 +96,7 @@ function cleanupExpiredVideos() {
   }
 }
 
-function loadState() {
+async function loadState() {
   if (!fs.existsSync(STATE_FILE)) {
     saveState();
     return;
@@ -89,11 +107,13 @@ function loadState() {
     const parsed = JSON.parse(raw);
 
     if (Array.isArray(parsed?.queueItems)) {
-      queueItems = parsed.queueItems.filter((item) => {
-        if (!item || !item.id || !item.diskFile) return false;
-        const fullPath = path.join(UPLOADS_DIR, item.diskFile);
-        return fs.existsSync(fullPath);
-      });
+      queueItems = parsed.queueItems
+        .filter((item) => item && item.id && item.storagePath)
+        .map((item) => ({
+          ...item,
+          publicUrl: item.publicUrl || getPublicVideoUrl(item.storagePath),
+          streamUrl: `/api/queue/${encodeURIComponent(item.id)}/stream`
+        }));
     }
 
     if (parsed?.cooldownSettings && typeof parsed.cooldownSettings === 'object') {
@@ -118,26 +138,14 @@ function loadState() {
       }
     }
 
-    cleanupExpiredVideos();
+    await cleanupExpiredVideos();
   } catch (err) {
     console.error('Error cargando estado, iniciando limpio:', err.message);
   }
 }
 
-loadState();
-setInterval(cleanupExpiredVideos, 60 * 60 * 1000);
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || '.mp4') || '.mp4';
-    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-    cb(null, safeName);
-  }
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 250 * 1024 * 1024 }
 });
 
@@ -148,10 +156,9 @@ app.get('/api/queue', (_req, res) => {
   res.json({ items: queueItems });
 });
 
-app.post('/api/queue', upload.single('file'), (req, res) => {
+app.post('/api/queue', upload.single('file'), async (req, res) => {
   const user = String(req.body?.user || '').trim();
   if (!user || !req.file) {
-    removeUploadedFile(req.file?.path);
     return res.status(400).json({ ok: false, error: 'Falta usuario o archivo de video.' });
   }
 
@@ -165,7 +172,6 @@ app.post('/api/queue', upload.single('file'), (req, res) => {
     if (typeof lastUploadAt === 'number') {
       const elapsed = now - lastUploadAt;
       if (elapsed < cooldownMs) {
-        removeUploadedFile(req.file.path);
         const remainingMs = cooldownMs - elapsed;
         const remainingSeconds = Math.ceil(remainingMs / 1000);
         const minsLeft = Math.floor(remainingSeconds / 60);
@@ -182,47 +188,72 @@ app.post('/api/queue', upload.single('file'), (req, res) => {
     }
   }
 
-  if (userKey) {
-    lastUploadByUser.set(userKey, now);
-  }
-
+  const ext = path.extname(req.file.originalname || '.mp4').toLowerCase() || '.mp4';
   const id = `vid_${now}_${Math.random().toString(36).slice(2, 6)}`;
-  const item = {
-    id,
-    user,
-    fileName: req.file.originalname || req.file.filename,
-    diskFile: req.file.filename,
-    streamUrl: `/api/queue/${encodeURIComponent(id)}/stream`,
-    createdAt: now
-  };
+  const storagePath = `videos/${id}${ext}`;
 
-  queueItems.push(item);
-  saveState();
-  return res.status(201).json(item);
+  try {
+    const { error: uploadError } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(storagePath, req.file.buffer, {
+        contentType: req.file.mimetype || 'video/mp4',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Error subiendo a Supabase Storage:', uploadError.message);
+      return res.status(502).json({
+        ok: false,
+        error: 'No se pudo subir el video a Supabase Storage.'
+      });
+    }
+
+    if (userKey) {
+      lastUploadByUser.set(userKey, now);
+    }
+
+    const publicUrl = getPublicVideoUrl(storagePath);
+    const item = {
+      id,
+      user,
+      fileName: req.file.originalname || `${id}${ext}`,
+      storagePath,
+      publicUrl,
+      streamUrl: `/api/queue/${encodeURIComponent(id)}/stream`,
+      createdAt: now
+    };
+
+    queueItems.push(item);
+    saveState();
+    return res.status(201).json(item);
+  } catch (err) {
+    console.error('Error inesperado en POST /api/queue:', err.message);
+    return res.status(500).json({ ok: false, error: 'Error interno al procesar el video.' });
+  }
 });
 
 app.get('/api/queue/:id/stream', (req, res) => {
   const item = queueItems.find((v) => v.id === req.params.id);
-  if (!item) {
+  if (!item || !item.storagePath) {
     return res.status(404).send('Video no encontrado');
   }
 
-  const filePath = path.join(UPLOADS_DIR, item.diskFile);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send('Archivo no disponible');
+  const publicUrl = item.publicUrl || getPublicVideoUrl(item.storagePath);
+  if (!publicUrl) {
+    return res.status(404).send('URL de video no disponible');
   }
 
-  return res.sendFile(filePath);
+  return res.redirect(302, publicUrl);
 });
 
-app.delete('/api/queue/:id', (req, res) => {
+app.delete('/api/queue/:id', async (req, res) => {
   const idx = queueItems.findIndex((v) => v.id === req.params.id);
   if (idx === -1) {
     return res.json({ ok: true, deleted: false });
   }
 
   const [removed] = queueItems.splice(idx, 1);
-  removeUploadedFile(path.join(UPLOADS_DIR, removed.diskFile));
+  await deleteStorageObject(removed.storagePath);
   saveState();
 
   return res.json({ ok: true, deleted: true });
@@ -242,6 +273,12 @@ app.put('/api/settings/cooldown', (req, res) => {
   res.json(cooldownSettings);
 });
 
-app.listen(PORT, () => {
-  console.log(`Reaccion17 corriendo en http://localhost:${PORT}`);
+loadState().then(() => {
+  setInterval(() => {
+    cleanupExpiredVideos();
+  }, 60 * 60 * 1000);
+
+  app.listen(PORT, () => {
+    console.log(`Reaccion17 corriendo en http://localhost:${PORT}`);
+  });
 });
