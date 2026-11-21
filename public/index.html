@@ -356,12 +356,48 @@
             color: #9e9ea8;
         }
 
-        .feed-users-panel {
+        .feed-cooldown-panel {
             position: fixed;
             left: 20px;
             top: 72px;
             width: 288px;
-            max-height: calc(100vh - 90px);
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(145, 70, 255, 0.30);
+            border-radius: 16px;
+            padding: 13px 15px;
+            display: none;
+            flex-direction: column;
+            gap: 9px;
+            z-index: 15;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .feed-cooldown-panel.visible-in-feed {
+            display: flex;
+        }
+
+        .feed-cooldown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .feed-cooldown-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .feed-users-panel {
+            position: fixed;
+            left: 20px;
+            top: 174px;
+            width: 288px;
+            max-height: calc(100vh - 192px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -390,31 +426,6 @@
         .feed-users-header h3 {
             font-size: 0.96rem;
             font-weight: 700;
-        }
-
-        .panel-cooldown-box {
-            background: #111115;
-            border: 1px solid rgba(145, 70, 255, 0.28);
-            border-radius: 12px;
-            padding: 10px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .panel-cooldown-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-            font-size: 0.8rem;
-        }
-
-        .panel-cooldown-controls {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
         }
 
         .feed-users-list {
@@ -687,7 +698,7 @@
         }
 
         .cooldown-mins-input {
-            width: 60px;
+            width: 62px;
             padding: 4px 6px;
             border-radius: 7px;
             border: 1px solid var(--border);
@@ -698,7 +709,7 @@
         }
 
         .btn-cd {
-            padding: 4px 8px;
+            padding: 4px 9px;
             border-radius: 7px;
             border: 1px solid var(--border);
             background: #26262c;
@@ -931,11 +942,12 @@
 
         @media (max-width: 1120px) {
             .user-queue-panel.visible-in-chat,
+            .feed-cooldown-panel.visible-in-feed,
             .feed-users-panel.visible-in-feed {
                 position: static;
                 width: 100%;
                 max-width: 480px;
-                margin: 14px auto 0 auto;
+                margin: 12px auto 0 auto;
                 max-height: none;
                 box-shadow: none;
             }
@@ -1051,24 +1063,25 @@
         </div>
     </aside>
 
-    <aside id="feed-users-panel" class="feed-users-panel" aria-label="Usuarios en cola y cooldown">
+    <aside id="feed-cooldown-panel" class="feed-cooldown-panel" aria-label="Control de cooldown">
+        <div class="feed-cooldown-header">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span>⏱️ Cooldown</span>
+                <span id="cooldown-status-badge" class="cooldown-badge on">Activado</span>
+            </div>
+            <span id="cooldown-duration-label" style="color: var(--text-muted); font-size:0.75rem; font-weight:500;">(120 min)</span>
+        </div>
+        <div class="feed-cooldown-controls">
+            <input type="number" id="cooldown-minutes-input" class="cooldown-mins-input" min="1" max="10080" value="120" title="Minutos de cooldown">
+            <button type="button" id="btn-cd-enable" class="btn-cd enable active" onclick="setCooldownState(true)">Activar</button>
+            <button type="button" id="btn-cd-disable" class="btn-cd disable" onclick="setCooldownState(false)">Desactivar</button>
+        </div>
+    </aside>
+
+    <aside id="feed-users-panel" class="feed-users-panel" aria-label="Usuarios en cola">
         <div class="feed-users-header">
             <h3>👥 Usuarios en cola</h3>
             <span id="feed-users-total-badge" class="status-pill pending">0 usuarios</span>
-        </div>
-        <div class="panel-cooldown-box" aria-label="Control de cooldown">
-            <div class="panel-cooldown-top">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span>Cooldown:</span>
-                    <span id="cooldown-status-badge" class="cooldown-badge on">Activado</span>
-                </div>
-                <span id="cooldown-duration-label" style="color: var(--text-muted); font-size:0.76rem;">(120 min)</span>
-            </div>
-            <div class="panel-cooldown-controls">
-                <input type="number" id="cooldown-minutes-input" class="cooldown-mins-input" min="1" max="10080" value="120" title="Minutos de cooldown">
-                <button type="button" id="btn-cd-enable" class="btn-cd enable active" onclick="setCooldownState(true)">Activar</button>
-                <button type="button" id="btn-cd-disable" class="btn-cd disable" onclick="setCooldownState(false)">Desactivar</button>
-            </div>
         </div>
         <div id="feed-users-list" class="feed-users-list">
             <div class="empty-state">No hay usuarios con videos en cola.</div>
@@ -1504,11 +1517,15 @@
         renderUserVideosPanel();
 
         function renderFeedUsersPanel() {
+            const cdPanel = document.getElementById('feed-cooldown-panel');
             const panel = document.getElementById('feed-users-panel');
             const listEl = document.getElementById('feed-users-list');
             const totalBadge = document.getElementById('feed-users-total-badge');
             const adminActive = document.getElementById('view-admin').classList.contains('active') && isAdminAuthenticated();
 
+            if (cdPanel) {
+                cdPanel.classList.toggle('visible-in-feed', Boolean(adminActive));
+            }
             if (!panel || !listEl || !totalBadge) return;
 
             panel.classList.toggle('visible-in-feed', Boolean(adminActive));
