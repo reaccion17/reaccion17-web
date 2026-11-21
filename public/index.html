@@ -877,8 +877,8 @@
 
         .video-card {
             height: 100%;
-            width: min(100%, calc((100vh - 86px) * 9 / 16 + 150px));
-            max-width: 680px;
+            width: min(100%, calc((100vh - 86px) * 9 / 16 + 24px));
+            max-width: 440px;
             margin: 0 auto 16px auto;
             scroll-snap-align: start;
             scroll-snap-stop: always;
@@ -1845,10 +1845,10 @@
 
             listEl.innerHTML = combined.slice(0, 12).map(item => {
                 const pillClass = item.isPending ? 'pending' : 'seen';
-                const pillText = item.isPending ? `En cola (#${item.position})` : 'Visto y borrado';
+                const pillText = item.isPending ? `En cola (#${item.position})` : 'Visto';
                 const detailText = item.isPending
                     ? 'Listo en la cola del stream.'
-                    : 'Marcado como visto y eliminado del almacenamiento.';
+                    : 'Marcado como visto y retirado de la cola.';
 
                 return `
                     <div class="my-video-item">
