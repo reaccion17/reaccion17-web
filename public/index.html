@@ -1303,9 +1303,6 @@
 
         let videos = [];
         let audioCtx = null;
-        let analyserNode = null;
-        let connectedVideoEl = null;
-        let meterRafId = null;
         let scrollSyncRaf = null;
         let pollTimer = null;
 
@@ -1385,62 +1382,6 @@
             }
             saveVolumeState();
             applyVolumeToAllVideos();
-        }
-
-        function startAudioMeterForVideo(videoEl) {
-            const meterFill = document.getElementById('global-audio-meter-fill');
-            if (!meterFill || !videoEl) return;
-
-            try {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContextClass) return;
-
-                if (!audioCtx) {
-                    audioCtx = new AudioContextClass();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume().catch(() => {});
-                }
-
-                if (!analyserNode) {
-                    analyserNode = audioCtx.createAnalyser();
-                    analyserNode.fftSize = 256;
-                    analyserNode.connect(audioCtx.destination);
-                }
-
-                if (connectedVideoEl !== videoEl) {
-                    try {
-                        const source = audioCtx.createMediaElementSource(videoEl);
-                        source.connect(analyserNode);
-                        connectedVideoEl = videoEl;
-                    } catch {
-                        // Si ya estaba enlazado o bloqueado por CORS, mantener el control de volumen
-                    }
-                }
-
-                if (!meterRafId) {
-                    const freqData = new Uint8Array(analyserNode.frequencyBinCount);
-                    const updateMeter = () => {
-                        const adminActive = document.getElementById('view-admin').classList.contains('active');
-                        if (!adminActive || !connectedVideoEl || connectedVideoEl.paused || volumeState.muted) {
-                            meterFill.style.width = '0%';
-                        } else {
-                            analyserNode.getByteFrequencyData(freqData);
-                            let sum = 0;
-                            for (let i = 0; i < freqData.length; i++) {
-                                sum += freqData[i];
-                            }
-                            const avg = sum / freqData.length;
-                            const levelPct = Math.min(100, Math.round((avg / 140) * 100));
-                            meterFill.style.width = `${levelPct}%`;
-                        }
-                        meterRafId = requestAnimationFrame(updateMeter);
-                    };
-                    meterRafId = requestAnimationFrame(updateMeter);
-                }
-            } catch {
-                // Ignorar si el navegador bloquea el análisis de audio
-            }
         }
 
         loadSavedVolumeState();
@@ -2034,7 +1975,6 @@
                             videoEl.play().catch(() => {});
                         }
                     }
-                    startAudioMeterForVideo(videoEl);
                 } else {
                     if (!videoEl.paused) {
                         videoEl.pause();
@@ -2117,6 +2057,7 @@
 
         function getVideoStreamSrc(video) {
             if (video?.blobUrl) return video.blobUrl;
+            if (video?.publicUrl) return video.publicUrl;
             if (video?.streamUrl) return video.streamUrl;
             if (video?.id) return `${API_BASE}/api/queue/${encodeURIComponent(video.id)}/stream`;
             return '';
@@ -2328,9 +2269,6 @@
                     volumeState.muted = videoEl.muted;
                     saveVolumeState();
                     applyVolumeToAllVideos();
-                });
-                videoEl.addEventListener('play', () => {
-                    startAudioMeterForVideo(videoEl);
                 });
             }
 
