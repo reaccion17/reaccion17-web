@@ -442,59 +442,6 @@
             font-weight: 700;
         }
 
-        .leaderboard-undo-bar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 6px 9px;
-            border-radius: 10px;
-            background: rgba(255, 193, 7, 0.08);
-            border: 1px solid rgba(255, 193, 7, 0.25);
-            font-size: 0.73rem;
-            color: #ffe082;
-            flex-shrink: 0;
-        }
-
-        .leaderboard-undo-bar.admin-visible {
-            display: flex;
-        }
-
-        .leaderboard-undo-text {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .btn-undo-rating {
-            padding: 4px 8px;
-            border-radius: 7px;
-            border: 1px solid rgba(255, 193, 7, 0.45);
-            background: rgba(255, 193, 7, 0.16);
-            color: #ffe89e;
-            font-size: 0.72rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth), border-color 0.16s var(--ease-smooth);
-        }
-
-        .btn-undo-rating:hover:not(:disabled) {
-            transform: translateY(-1px);
-            background: rgba(255, 193, 7, 0.28);
-            border-color: rgba(255, 193, 7, 0.75);
-        }
-
-        .btn-undo-rating:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        .btn-undo-rating:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
         .leaderboard-list {
             display: flex;
             flex-direction: column;
@@ -572,48 +519,60 @@
         .leaderboard-right {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             flex-shrink: 0;
         }
 
         .leaderboard-points {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 800;
             color: #63f5b9;
             background: rgba(0, 245, 147, 0.12);
             border: 1px solid rgba(0, 245, 147, 0.30);
-            padding: 3px 8px;
+            padding: 3px 7px;
             border-radius: 999px;
             white-space: nowrap;
             font-variant-numeric: tabular-nums;
             transition: transform 0.16s var(--ease-smooth), background-color 0.2s var(--ease-smooth);
         }
 
-        .btn-row-undo,
+        .btn-row-videos,
         .btn-row-remove {
-            width: 24px;
             height: 24px;
             border-radius: 7px;
             border: 1px solid rgba(255, 107, 107, 0.35);
             background: rgba(255, 107, 107, 0.10);
             color: #ff9b9b;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            padding: 0 6px;
+            white-space: nowrap;
             transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth), border-color 0.16s var(--ease-smooth);
         }
 
-        .btn-row-undo:hover,
+        .btn-row-videos {
+            border-color: rgba(182, 128, 255, 0.38);
+            background: rgba(145, 70, 255, 0.14);
+            color: #e2c8ff;
+        }
+
+        .btn-row-videos:hover {
+            transform: translateY(-1px);
+            background: rgba(145, 70, 255, 0.28);
+            border-color: rgba(182, 128, 255, 0.72);
+        }
+
         .btn-row-remove:hover {
             transform: translateY(-1px);
             background: rgba(255, 107, 107, 0.25);
             border-color: rgba(255, 107, 107, 0.7);
         }
 
-        .btn-row-undo:active,
+        .btn-row-videos:active,
         .btn-row-remove:active {
             transform: scale(0.92);
         }
@@ -1494,6 +1453,16 @@
             margin-top: 14px;
         }
 
+        .confirm-detail-box {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #111115;
+            border: 1px solid rgba(255, 107, 107, 0.32);
+            font-size: 0.82rem;
+            color: #ffd0d0;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             #splash-screen,
             .splash-logo,
@@ -1505,8 +1474,7 @@
             .btn-rate,
             .btn-cd,
             .btn-clear-seen,
-            .btn-undo-rating,
-            .btn-row-undo,
+            .btn-row-videos,
             .btn-row-remove,
             .btn-mute-toggle,
             .side-btn,
@@ -1709,10 +1677,6 @@
             <h3>🏆 Leaderboard</h3>
             <span id="leaderboard-count-badge" class="status-pill pending">0 usuarios</span>
         </div>
-        <div id="leaderboard-undo-bar" class="leaderboard-undo-bar">
-            <span id="leaderboard-undo-text" class="leaderboard-undo-text">Sin calificaciones recientes</span>
-            <button type="button" id="btn-undo-last-rating" class="btn-undo-rating" onclick="undoLastRating()" disabled>↩ Deshacer</button>
-        </div>
         <div id="leaderboard-list" class="leaderboard-list">
             <div class="empty-state">Aún no hay usuarios con videos registrados.</div>
         </div>
@@ -1745,6 +1709,20 @@
                     <button type="submit" class="btn-small btn-seen">Entrar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="leaderboard-confirm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-box">
+            <h3 id="confirm-modal-title" style="margin-bottom: 6px; font-size: 1.05rem;">Confirmar acción</h3>
+            <p id="confirm-modal-message" style="color: var(--text-muted); font-size: 0.86rem; line-height: 1.4;">
+                ¿Seguro que deseas continuar?
+            </p>
+            <div id="confirm-modal-detail" class="confirm-detail-box"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-small" onclick="closeConfirmModal()">Cancelar</button>
+                <button type="button" id="btn-confirm-action" class="btn-small" style="background: rgba(255, 107, 107, 0.22); border-color: rgba(255, 107, 107, 0.65); color: #ffb3b3; font-weight: 700;">Confirmar</button>
+            </div>
         </div>
     </div>
 
@@ -1781,8 +1759,8 @@
         const VOLUME_STORAGE_KEY = 'reaccion17_player_volume_v1';
         const MUTED_STORAGE_KEY = 'reaccion17_player_muted_v1';
         const LEADERBOARD_LOCAL_KEY = 'reaccion17_leaderboard_v1';
-        const RATING_HISTORY_LOCAL_KEY = 'reaccion17_rating_history_v1';
         const REMOVED_BOARD_USERS_KEY = 'reaccion17_removed_board_users_v1';
+        const SUBMISSIONS_ADJUST_KEY = 'reaccion17_submissions_adjust_v1';
 
         let cooldownConfig = {
             enabled: true,
@@ -1790,8 +1768,8 @@
         };
 
         let leaderboard = [];
-        let ratingHistory = [];
         const selectedRatingByVideoId = new Map();
+        let pendingConfirmCallback = null;
 
         let volumeState = {
             volume: 0.8,
@@ -1835,7 +1813,55 @@
             }
         }
 
+        function loadSubmissionsAdjust() {
+            try {
+                const raw = localStorage.getItem(SUBMISSIONS_ADJUST_KEY);
+                const parsed = raw ? JSON.parse(raw) : {};
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function saveSubmissionsAdjust(obj) {
+            try {
+                localStorage.setItem(SUBMISSIONS_ADJUST_KEY, JSON.stringify(obj));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
         let removedBoardUsers = loadRemovedBoardUsers();
+        let submissionsAdjust = loadSubmissionsAdjust();
+
+        function openConfirmModal({ title, message, detail, onConfirm }) {
+            const modal = document.getElementById('leaderboard-confirm-modal');
+            const titleEl = document.getElementById('confirm-modal-title');
+            const msgEl = document.getElementById('confirm-modal-message');
+            const detailEl = document.getElementById('confirm-modal-detail');
+            const confirmBtn = document.getElementById('btn-confirm-action');
+
+            if (!modal || !titleEl || !msgEl || !detailEl || !confirmBtn) return;
+
+            titleEl.textContent = title || 'Confirmar acción';
+            msgEl.textContent = message || '¿Seguro que deseas continuar?';
+            detailEl.textContent = detail || '';
+            pendingConfirmCallback = typeof onConfirm === 'function' ? onConfirm : null;
+
+            confirmBtn.onclick = async () => {
+                const cb = pendingConfirmCallback;
+                closeConfirmModal();
+                if (cb) await cb();
+            };
+
+            modal.classList.add('open');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('leaderboard-confirm-modal');
+            if (modal) modal.classList.remove('open');
+            pendingConfirmCallback = null;
+        }
 
         function loadLocalLeaderboard() {
             try {
@@ -1855,24 +1881,6 @@
             }
         }
 
-        function loadLocalRatingHistory() {
-            try {
-                const raw = localStorage.getItem(RATING_HISTORY_LOCAL_KEY);
-                const parsed = raw ? JSON.parse(raw) : [];
-                return Array.isArray(parsed) ? parsed : [];
-            } catch {
-                return [];
-            }
-        }
-
-        function saveLocalRatingHistory(items) {
-            try {
-                localStorage.setItem(RATING_HISTORY_LOCAL_KEY, JSON.stringify(items.slice(-100)));
-            } catch {
-                // Ignorar errores de cuota
-            }
-        }
-
         function sortLeaderboardItems(items) {
             const merged = new Map();
 
@@ -1883,7 +1891,9 @@
                 const displayName = formatDisplayUser(entry.displayName || key);
                 const totalScore = Number(entry.totalScore) || 0;
                 const ratingsCount = Number(entry.ratingsCount) || 0;
-                const submissionsCount = Number(entry.submissionsCount) || 0;
+                const rawSubs = Number(entry.submissionsCount) || 0;
+                const delta = Number(submissionsAdjust[key]) || 0;
+                const submissionsCount = Math.max(0, rawSubs + delta);
                 if (totalScore > 0 || ratingsCount > 0 || submissionsCount > 0) {
                     merged.set(key, {
                         key,
@@ -1900,13 +1910,15 @@
             videos.forEach(v => {
                 const key = normalizeUser(v?.user);
                 if (!key || removedBoardUsers.has(key)) return;
-                if (!merged.has(key)) {
+                const delta = Number(submissionsAdjust[key]) || 0;
+                const subs = Math.max(0, 1 + delta);
+                if (!merged.has(key) && subs > 0) {
                     merged.set(key, {
                         key,
                         displayName: formatDisplayUser(v.user),
                         totalScore: 0,
                         ratingsCount: 0,
-                        submissionsCount: 1,
+                        submissionsCount: subs,
                         lastRating: null,
                         updatedAt: Number(v.createdAt) || 0
                     });
@@ -1916,13 +1928,15 @@
             loadMyHistory().forEach(h => {
                 const key = normalizeUser(h?.user);
                 if (!key || removedBoardUsers.has(key)) return;
-                if (!merged.has(key)) {
+                const delta = Number(submissionsAdjust[key]) || 0;
+                const subs = Math.max(0, 1 + delta);
+                if (!merged.has(key) && subs > 0) {
                     merged.set(key, {
                         key,
                         displayName: formatDisplayUser(h.user),
                         totalScore: 0,
                         ratingsCount: 0,
-                        submissionsCount: 1,
+                        submissionsCount: subs,
                         lastRating: null,
                         updatedAt: Number(h.createdAt) || 0
                     });
@@ -1971,7 +1985,7 @@
             renderLeaderboardPanel();
         }
 
-        function applyScoreToLeaderboardLocal(rawUsername, rating, videoId = null) {
+        function applyScoreToLeaderboardLocal(rawUsername, rating) {
             const key = normalizeUser(rawUsername) || 'anonimo';
             if (removedBoardUsers.has(key)) {
                 removedBoardUsers.delete(key);
@@ -2004,56 +2018,49 @@
             currentMap.set(key, existing);
             leaderboard = sortLeaderboardItems(Array.from(currentMap.values()));
             saveLocalLeaderboard(leaderboard);
-
-            const localEvent = {
-                eventId: `local_evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                key,
-                displayName,
-                rating,
-                videoId,
-                createdAt: Date.now()
-            };
-            ratingHistory = [...ratingHistory, localEvent].slice(-100);
-            saveLocalRatingHistory(ratingHistory);
-
             renderLeaderboardPanel();
-            return localEvent.eventId;
         }
 
-        function undoRatingLocal(eventId = null) {
-            const idx = eventId
-                ? ratingHistory.findIndex(ev => ev.eventId === eventId)
-                : ratingHistory.length - 1;
+        function promptRemoveVideoCount(userKey, displayName, currentSubs) {
+            if (!isAdminAuthenticated()) return;
+            const normKey = normalizeUser(userKey || displayName);
+            const shownName = displayName || formatDisplayUser(normKey);
+            const countNow = Math.max(0, Number(currentSubs) || 0);
 
-            if (idx === -1) return null;
+            openConfirmModal({
+                title: 'Eliminar videos enviados',
+                message: `¿Deseas eliminar 1 video enviado de ${shownName} en la leaderboard?`,
+                detail: `Usuario: ${shownName} · Videos enviados actuales en tabla: ${countNow}`,
+                onConfirm: () => removeVideoCountFromLeaderboard(normKey, shownName, 1)
+            });
+        }
 
-            const [removed] = ratingHistory.splice(idx, 1);
-            saveLocalRatingHistory(ratingHistory);
+        async function removeVideoCountFromLeaderboard(userKey, displayName = '', amount = 1) {
+            if (!isAdminAuthenticated()) return;
+            const normKey = normalizeUser(userKey || displayName);
+            if (!normKey) return;
+            const dec = Math.max(1, Number(amount) || 1);
 
-            const key = normalizeUser(removed.key || removed.displayName) || 'anonimo';
+            submissionsAdjust[normKey] = (Number(submissionsAdjust[normKey]) || 0) - dec;
+            saveSubmissionsAdjust(submissionsAdjust);
+
             const map = new Map();
             leaderboard.forEach(item => {
                 const k = normalizeUser(item.key || item.displayName);
                 if (k) map.set(k, { ...item, key: k });
             });
 
-            const existing = map.get(key);
+            const existing = map.get(normKey);
             if (existing) {
-                const nextScore = Math.max(0, Number(existing.totalScore || 0) - Number(removed.rating || 0));
-                const nextCount = Math.max(0, Number(existing.ratingsCount || 0) - 1);
-                const subsCount = Math.max(0, Number(existing.submissionsCount || 0));
-                const remainingUserEvents = ratingHistory.filter(ev => ev.key === key);
-                const prevEvent = remainingUserEvents[remainingUserEvents.length - 1];
-
-                if (nextScore <= 0 && nextCount <= 0 && subsCount <= 0) {
-                    map.delete(key);
+                const nextSubs = Math.max(0, Number(existing.submissionsCount || 0) - dec);
+                const score = Number(existing.totalScore || 0);
+                const count = Number(existing.ratingsCount || 0);
+                if (nextSubs <= 0 && score <= 0 && count <= 0) {
+                    map.delete(normKey);
                 } else {
-                    map.set(key, {
+                    map.set(normKey, {
                         ...existing,
-                        totalScore: nextScore,
-                        ratingsCount: nextCount,
-                        submissionsCount: subsCount,
-                        lastRating: prevEvent ? prevEvent.rating : null,
+                        submissionsCount: nextSubs,
                         updatedAt: Date.now()
                     });
                 }
@@ -2062,7 +2069,37 @@
             leaderboard = sortLeaderboardItems(Array.from(map.values()));
             saveLocalLeaderboard(leaderboard);
             renderLeaderboardPanel();
-            return removed;
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/leaderboard/videos/remove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: normKey, user: displayName || normKey, amount: dec })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (Array.isArray(data?.leaderboard)) {
+                        leaderboard = sortLeaderboardItems(data.leaderboard);
+                        saveLocalLeaderboard(leaderboard);
+                        renderLeaderboardPanel();
+                    }
+                }
+            } catch {
+                // Mantener ajuste local si el backend no tiene este endpoint aún
+            }
+        }
+
+        function promptRemoveUserFromLeaderboard(userKey, displayName) {
+            if (!isAdminAuthenticated()) return;
+            const normKey = normalizeUser(userKey || displayName);
+            const shownName = displayName || formatDisplayUser(normKey);
+
+            openConfirmModal({
+                title: 'Eliminar usuario del leaderboard',
+                message: `¿Estás seguro de que quieres eliminar a ${shownName} de la leaderboard?`,
+                detail: `Se quitará a ${shownName} de la tabla de posiciones.`,
+                onConfirm: () => removeUserFromLeaderboard(normKey, shownName)
+            });
         }
 
         async function removeUserFromLeaderboard(userKey, displayName = '') {
@@ -2072,9 +2109,6 @@
 
             removedBoardUsers.add(normKey);
             saveRemovedBoardUsers(removedBoardUsers);
-
-            ratingHistory = ratingHistory.filter(ev => normalizeUser(ev.key || ev.displayName) !== normKey);
-            saveLocalRatingHistory(ratingHistory);
 
             leaderboard = leaderboard.filter(item => normalizeUser(item.key || item.displayName) !== normKey);
             saveLocalLeaderboard(leaderboard);
@@ -2092,12 +2126,6 @@
                         leaderboard = sortLeaderboardItems(data.leaderboard);
                         saveLocalLeaderboard(leaderboard);
                     }
-                    if (Array.isArray(data?.ratingHistory)) {
-                        ratingHistory = data.ratingHistory
-                            .filter(ev => normalizeUser(ev.key || ev.displayName) !== normKey)
-                            .slice(-100);
-                        saveLocalRatingHistory(ratingHistory);
-                    }
                     renderLeaderboardPanel();
                 }
             } catch {
@@ -2109,9 +2137,6 @@
             const panel = document.getElementById('leaderboard-panel');
             const listEl = document.getElementById('leaderboard-list');
             const badgeEl = document.getElementById('leaderboard-count-badge');
-            const undoBarEl = document.getElementById('leaderboard-undo-bar');
-            const undoTextEl = document.getElementById('leaderboard-undo-text');
-            const undoBtnEl = document.getElementById('btn-undo-last-rating');
             const adminActive = document.getElementById('view-admin').classList.contains('active');
             const canModify = adminActive && isAdminAuthenticated();
 
@@ -2120,23 +2145,6 @@
                 panel.classList.toggle('visible-in-chat', !adminActive);
             }
             if (!listEl || !badgeEl) return;
-
-            if (undoBarEl) {
-                undoBarEl.classList.toggle('admin-visible', Boolean(canModify));
-            }
-
-            const lastEvent = ratingHistory.length > 0 ? ratingHistory[ratingHistory.length - 1] : null;
-            if (undoTextEl && undoBtnEl) {
-                if (lastEvent) {
-                    undoTextEl.textContent = `Última: ${lastEvent.displayName} (+${lastEvent.rating})`;
-                    undoTextEl.title = `Deshacer +${lastEvent.rating} pts para ${lastEvent.displayName}`;
-                    undoBtnEl.disabled = !canModify;
-                } else {
-                    undoTextEl.textContent = 'Sin calificaciones recientes';
-                    undoTextEl.title = '';
-                    undoBtnEl.disabled = true;
-                }
-            }
 
             const sorted = sortLeaderboardItems(leaderboard);
             badgeEl.textContent = `${sorted.length} ${sorted.length === 1 ? 'usuario' : 'usuarios'}`;
@@ -2152,12 +2160,12 @@
                 const topClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
                 const score = Number(entry.totalScore || 0);
                 const count = Number(entry.ratingsCount) || 0;
-                const subs = Math.max(count, Number(entry.submissionsCount) || 0);
+                const subs = Math.max(0, Number(entry.submissionsCount) || 0);
                 const subText = count > 0
-                    ? `${count} ${count === 1 ? 'calif.' : 'calif.'} · prom ${(score / count).toFixed(1)}/10`
+                    ? `${count} ${count === 1 ? 'calif.' : 'calif.'} · prom ${(score / count).toFixed(1)}/10 · ${subs} vid.`
                     : `${subs} ${subs === 1 ? 'video enviado' : 'videos enviados'}`;
                 const entryKey = normalizeUser(entry.key || entry.displayName);
-                const latestUserEvent = [...ratingHistory].reverse().find(ev => ev.key === entryKey);
+                const safeNameJs = entry.displayName.replace(/'/g, "\\'");
 
                 return `
                     <div class="leaderboard-row ${topClass}">
@@ -2170,11 +2178,11 @@
                         </div>
                         <div class="leaderboard-right">
                             <span class="leaderboard-points">${score} pts</span>
-                            ${canModify && latestUserEvent
-                                ? `<button type="button" class="btn-row-undo" onclick="undoRating('${latestUserEvent.eventId}')" title="Quitar última calificación (+${latestUserEvent.rating}) de ${entry.displayName}">↩</button>`
+                            ${canModify && subs > 0
+                                ? `<button type="button" class="btn-row-videos" onclick="promptRemoveVideoCount('${entryKey}', '${safeNameJs}', ${subs})" title="Quitar 1 video enviado de ${entry.displayName} en la leaderboard">-1 vid</button>`
                                 : ''}
                             ${canModify
-                                ? `<button type="button" class="btn-row-remove" onclick="removeUserFromLeaderboard('${entryKey}', '${entry.displayName.replace(/'/g, "\\'")}')" title="Eliminar a ${entry.displayName} del leaderboard">🗑️</button>`
+                                ? `<button type="button" class="btn-row-remove" onclick="promptRemoveUserFromLeaderboard('${entryKey}', '${safeNameJs}')" title="Eliminar a ${entry.displayName} del leaderboard">🗑️</button>`
                                 : ''}
                         </div>
                     </div>
@@ -2183,7 +2191,6 @@
         }
 
         leaderboard = sortLeaderboardItems(loadLocalLeaderboard());
-        ratingHistory = loadLocalRatingHistory();
 
         function loadSavedVolumeState() {
             try {
@@ -2981,11 +2988,13 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeAdminAuthModal();
+                closeConfirmModal();
                 return;
             }
 
-            const modalOpen = document.getElementById('admin-auth-modal').classList.contains('open');
-            if (modalOpen) return;
+            const authOpen = document.getElementById('admin-auth-modal').classList.contains('open');
+            const confirmOpen = document.getElementById('leaderboard-confirm-modal').classList.contains('open');
+            if (authOpen || confirmOpen) return;
 
             const adminActive = document.getElementById('view-admin').classList.contains('active');
             if (!adminActive) return;
@@ -3203,43 +3212,6 @@
             updateCardRatingSelectionUI(videoId);
         }
 
-        async function undoLastRating() {
-            if (!isAdminAuthenticated()) return;
-            const lastEvent = ratingHistory[ratingHistory.length - 1];
-            if (!lastEvent) return;
-            await undoRating(lastEvent.eventId);
-        }
-
-        async function undoRating(eventId) {
-            if (!isAdminAuthenticated() || !eventId) return;
-
-            undoRatingLocal(eventId);
-
-            if (!String(eventId).startsWith('local_evt_')) {
-                try {
-                    const resp = await fetch(`${API_BASE}/api/leaderboard/undo`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ eventId })
-                    });
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        if (Array.isArray(data?.leaderboard)) {
-                            leaderboard = sortLeaderboardItems(data.leaderboard);
-                            saveLocalLeaderboard(leaderboard);
-                        }
-                        if (Array.isArray(data?.ratingHistory)) {
-                            ratingHistory = data.ratingHistory.slice(-100);
-                            saveLocalRatingHistory(ratingHistory);
-                        }
-                        renderLeaderboardPanel();
-                    }
-                } catch {
-                    // Mantener estado local si no hay conexión
-                }
-            }
-        }
-
         async function markVideoSeen(id) {
             unlockAudioContext();
             playSeenSound();
@@ -3255,7 +3227,7 @@
             }
 
             if (hasRating) {
-                applyScoreToLeaderboardLocal(targetUser, pickedRating, id);
+                applyScoreToLeaderboardLocal(targetUser, pickedRating);
             }
 
             videos = videos.filter(v => v.id !== id);
@@ -3283,10 +3255,6 @@
                             if (Array.isArray(data?.leaderboard)) {
                                 leaderboard = sortLeaderboardItems(data.leaderboard);
                                 saveLocalLeaderboard(leaderboard);
-                            }
-                            if (Array.isArray(data?.ratingHistory)) {
-                                ratingHistory = data.ratingHistory.slice(-100);
-                                saveLocalRatingHistory(ratingHistory);
                             }
                             renderLeaderboardPanel();
                         }
@@ -3439,12 +3407,6 @@
                     saveLocalLeaderboard(leaderboard);
                 } else {
                     leaderboard = sortLeaderboardItems(leaderboard);
-                }
-                if (Array.isArray(data?.ratingHistory)) {
-                    ratingHistory = data.ratingHistory
-                        .filter(ev => !removedBoardUsers.has(normalizeUser(ev.key || ev.displayName)))
-                        .slice(-100);
-                    saveLocalRatingHistory(ratingHistory);
                 }
 
                 updateQueueCounterUI();
