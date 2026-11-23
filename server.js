@@ -117,6 +117,41 @@ function addUserScore(rawUsername, rating, videoId = null, fileName = null) {
   return { entry: existing, eventEntry };
 }
 
+function removeUserVideosFromLeaderboard(rawUserOrKey, amount = 1) {
+  const key = normalizeUsername(rawUserOrKey);
+  if (!key) return false;
+  const dec = Math.max(1, Number(amount) || 1);
+  const existing = leaderboardByUser.get(key);
+  if (!existing) return false;
+
+  const nextSubs = Math.max(0, Number(existing.submissionsCount || 0) - dec);
+  const score = Number(existing.totalScore || 0);
+  const count = Number(existing.ratingsCount || 0);
+
+  if (nextSubs <= 0 && score <= 0 && count <= 0) {
+    leaderboardByUser.delete(key);
+  } else {
+    leaderboardByUser.set(key, {
+      ...existing,
+      submissionsCount: nextSubs,
+      updatedAt: Date.now()
+    });
+  }
+  return true;
+}
+
+function deleteUserCompletelyFromLeaderboard(rawUserOrKey) {
+  const key = normalizeUsername(rawUserOrKey);
+  if (!key) return false;
+
+  const existedInBoard = leaderboardByUser.has(key);
+  leaderboardByUser.delete(key);
+  lastUploadByUser.delete(key);
+  ratingHistory = ratingHistory.filter((ev) => normalizeUsername(ev.key || ev.displayName) !== key);
+
+  return existedInBoard;
+}
+
 function undoRatingEventById(eventId) {
   const idx = eventId
     ? ratingHistory.findIndex((ev) => ev.eventId === eventId)
@@ -289,13 +324,6 @@ function hydrateStateFromObject(parsed) {
           updatedAt: Number(val.updatedAt) || 0
         });
       }
-    }
-  }
-
-  // Asegurar que todo usuario actualmente en cola también figure en el leaderboard
-  for (const item of queueItems) {
-    if (item?.user) {
-      ensureUserInLeaderboard(item.user, 0);
     }
   }
 
@@ -516,6 +544,42 @@ app.post('/api/queue/:id/rate', async (req, res) => {
     rating,
     event: eventEntry,
     userScore: updatedUserScore,
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
+});
+
+app.post('/api/leaderboard/videos/remove', async (req, res) => {
+  const userOrKey = req.body?.key || req.body?.user || '';
+  const amount = Math.max(1, Number(req.body?.amount) || 1);
+  const updated = removeUserVideosFromLeaderboard(userOrKey, amount);
+
+  if (!updated) {
+    return res.status(404).json({ ok: false, error: 'Usuario no encontrado en el leaderboard.' });
+  }
+
+  await saveState();
+
+  return res.json({
+    ok: true,
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
+});
+
+app.post('/api/leaderboard/remove', async (req, res) => {
+  const userOrKey = req.body?.key || req.body?.user || '';
+  const deleted = deleteUserCompletelyFromLeaderboard(userOrKey);
+
+  if (!deleted) {
+    return res.status(404).json({ ok: false, error: 'Usuario no encontrado en el leaderboard.' });
+  }
+
+  await saveState();
+
+  return res.json({
+    ok: true,
+    deleted: true,
     leaderboard: getSortedLeaderboard(),
     ratingHistory: ratingHistory.slice(-20)
   });
