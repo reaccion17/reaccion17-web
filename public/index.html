@@ -567,7 +567,6 @@
             transition: transform 0.16s var(--ease-smooth), background-color 0.2s var(--ease-smooth);
         }
 
-        /* Lista dentro de la ventana de gestión de Leaderboard */
         .manage-board-list {
             display: flex;
             flex-direction: column;
@@ -649,7 +648,6 @@
             background: rgba(255, 107, 107, 0.28);
         }
 
-        /* Paneles de control a la derecha en la vista Feed */
         .feed-cooldown-panel {
             position: fixed;
             right: 20px;
@@ -1293,7 +1291,6 @@
             background: #000;
         }
 
-        /* Barra de calificación 1 al 10 */
         .rating-bar-box {
             margin-top: 8px;
             padding: 8px 10px;
@@ -1427,7 +1424,6 @@
             box-shadow: 0 0 14px rgba(0, 245, 147, 0.22);
         }
 
-        /* Flechas en la parte inferior izquierda al abrir el Feed */
         .side-nav {
             position: fixed;
             left: 20px;
@@ -1748,7 +1744,6 @@
         </div>
     </aside>
 
-    <!-- Leaderboard abajo a la derecha -->
     <aside id="leaderboard-panel" class="leaderboard-panel visible-in-chat" aria-label="Leaderboard de participantes">
         <div class="leaderboard-header">
             <h3>🏆 Leaderboard</h3>
@@ -1863,6 +1858,7 @@
         };
 
         let leaderboard = [];
+        let hasServerLeaderboardSync = false;
         const selectedRatingByVideoId = new Map();
         let pendingConfirmCallback = null;
 
@@ -1928,6 +1924,28 @@
 
         let removedBoardUsers = loadRemovedBoardUsers();
         let submissionsAdjust = loadSubmissionsAdjust();
+
+        function purgeUserLocalTraces(userKey) {
+            const key = normalizeUser(userKey);
+            if (!key) return;
+
+            try {
+                const history = loadMyHistory().filter(item => normalizeUser(item?.user) !== key);
+                saveMyHistory(history);
+            } catch {
+                // Ignorar errores
+            }
+
+            try {
+                const cdMap = loadCooldownMap();
+                if (Object.prototype.hasOwnProperty.call(cdMap, key)) {
+                    delete cdMap[key];
+                    saveCooldownMap(cdMap);
+                }
+            } catch {
+                // Ignorar errores
+            }
+        }
 
         function openConfirmModal({ title, message, detail, onConfirm }) {
             const modal = document.getElementById('leaderboard-confirm-modal');
@@ -2022,7 +2040,7 @@
             }
         }
 
-        function sortLeaderboardItems(items) {
+        function sortLeaderboardItems(items, fromServer = false) {
             const merged = new Map();
 
             (Array.isArray(items) ? items : []).forEach(entry => {
@@ -2066,23 +2084,26 @@
                 }
             });
 
-            loadMyHistory().forEach(h => {
-                const key = normalizeUser(h?.user);
-                if (!key || removedBoardUsers.has(key)) return;
-                const delta = Number(submissionsAdjust[key]) || 0;
-                const subs = Math.max(0, 1 + delta);
-                if (!merged.has(key) && subs > 0) {
-                    merged.set(key, {
-                        key,
-                        displayName: formatDisplayUser(h.user),
-                        totalScore: 0,
-                        ratingsCount: 0,
-                        submissionsCount: subs,
-                        lastRating: null,
-                        updatedAt: Number(h.createdAt) || 0
-                    });
-                }
-            });
+            // Solo sumar historial local cuando aún no hemos sincronizado con el servidor
+            if (!fromServer && !hasServerLeaderboardSync) {
+                loadMyHistory().forEach(h => {
+                    const key = normalizeUser(h?.user);
+                    if (!key || removedBoardUsers.has(key)) return;
+                    const delta = Number(submissionsAdjust[key]) || 0;
+                    const subs = Math.max(0, 1 + delta);
+                    if (!merged.has(key) && subs > 0) {
+                        merged.set(key, {
+                            key,
+                            displayName: formatDisplayUser(h.user),
+                            totalScore: 0,
+                            ratingsCount: 0,
+                            submissionsCount: subs,
+                            lastRating: null,
+                            updatedAt: Number(h.createdAt) || 0
+                        });
+                    }
+                });
+            }
 
             return Array.from(merged.values()).sort((a, b) => {
                 const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
@@ -2221,14 +2242,15 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     if (Array.isArray(data?.leaderboard)) {
-                        leaderboard = sortLeaderboardItems(data.leaderboard);
+                        hasServerLeaderboardSync = true;
+                        leaderboard = sortLeaderboardItems(data.leaderboard, true);
                         saveLocalLeaderboard(leaderboard);
                     }
                     renderLeaderboardPanel();
                     renderLeaderboardManageModal();
                 }
             } catch {
-                // Mantener ajuste local si el backend no tiene este endpoint aún
+                // Mantener ajuste local si el backend no responde
             }
         }
 
@@ -2252,11 +2274,13 @@
 
             removedBoardUsers.add(normKey);
             saveRemovedBoardUsers(removedBoardUsers);
+            purgeUserLocalTraces(normKey);
 
             leaderboard = leaderboard.filter(item => normalizeUser(item.key || item.displayName) !== normKey);
             saveLocalLeaderboard(leaderboard);
             renderLeaderboardPanel();
             renderLeaderboardManageModal();
+            renderUserVideosPanel();
 
             try {
                 const resp = await fetch(`${API_BASE}/api/leaderboard/remove`, {
@@ -2267,14 +2291,15 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     if (Array.isArray(data?.leaderboard)) {
-                        leaderboard = sortLeaderboardItems(data.leaderboard);
+                        hasServerLeaderboardSync = true;
+                        leaderboard = sortLeaderboardItems(data.leaderboard, true);
                         saveLocalLeaderboard(leaderboard);
                     }
                     renderLeaderboardPanel();
                     renderLeaderboardManageModal();
                 }
             } catch {
-                // Mantener eliminación local si el backend no tiene este endpoint aún
+                // Mantener eliminación local si el backend no responde
             }
         }
 
@@ -3396,7 +3421,8 @@
                         if (resp.ok) {
                             const data = await resp.json();
                             if (Array.isArray(data?.leaderboard)) {
-                                leaderboard = sortLeaderboardItems(data.leaderboard);
+                                hasServerLeaderboardSync = true;
+                                leaderboard = sortLeaderboardItems(data.leaderboard, true);
                                 saveLocalLeaderboard(leaderboard);
                             }
                             renderLeaderboardPanel();
@@ -3546,10 +3572,11 @@
                 videos = nextVideos;
 
                 if (Array.isArray(data?.leaderboard)) {
-                    leaderboard = sortLeaderboardItems(data.leaderboard);
+                    hasServerLeaderboardSync = true;
+                    leaderboard = sortLeaderboardItems(data.leaderboard, true);
                     saveLocalLeaderboard(leaderboard);
                 } else {
-                    leaderboard = sortLeaderboardItems(leaderboard);
+                    leaderboard = sortLeaderboardItems(leaderboard, hasServerLeaderboardSync);
                 }
 
                 updateQueueCounterUI();
