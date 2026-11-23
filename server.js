@@ -33,10 +33,98 @@ let cooldownSettings = {
   minutes: 120
 };
 const lastUploadByUser = new Map();
+const leaderboardByUser = new Map();
+let ratingHistory = [];
 let stateLoadedSuccessfully = false;
 
 function normalizeUsername(name) {
   return String(name || '').trim().replace(/^@+/, '').toLowerCase();
+}
+
+function formatDisplayUsername(name) {
+  const clean = String(name || '').trim().replace(/^@+/, '');
+  return clean ? `@${clean}` : '@Anónimo';
+}
+
+function getSortedLeaderboard() {
+  return Array.from(leaderboardByUser.values())
+    .filter((entry) => entry && Number(entry.totalScore) > 0)
+    .sort((a, b) => {
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+      if (b.ratingsCount !== a.ratingsCount) return b.ratingsCount - a.ratingsCount;
+      return String(a.displayName).localeCompare(String(b.displayName));
+    });
+}
+
+function addUserScore(rawUsername, rating, videoId = null, fileName = null) {
+  const key = normalizeUsername(rawUsername) || 'anonimo';
+  const displayName = formatDisplayUsername(rawUsername);
+  const existing = leaderboardByUser.get(key) || {
+    key,
+    displayName,
+    totalScore: 0,
+    ratingsCount: 0,
+    lastRating: null,
+    updatedAt: 0
+  };
+
+  existing.displayName = displayName;
+  existing.totalScore = Number(existing.totalScore || 0) + rating;
+  existing.ratingsCount = Number(existing.ratingsCount || 0) + 1;
+  existing.lastRating = rating;
+  existing.updatedAt = Date.now();
+
+  leaderboardByUser.set(key, existing);
+
+  const eventEntry = {
+    eventId: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    key,
+    displayName,
+    rating,
+    videoId: videoId || null,
+    fileName: fileName || null,
+    createdAt: Date.now()
+  };
+  ratingHistory.push(eventEntry);
+  if (ratingHistory.length > 100) {
+    ratingHistory = ratingHistory.slice(-100);
+  }
+
+  return { entry: existing, eventEntry };
+}
+
+function undoRatingEventById(eventId) {
+  const idx = eventId
+    ? ratingHistory.findIndex((ev) => ev.eventId === eventId)
+    : ratingHistory.length - 1;
+
+  if (idx === -1) return null;
+
+  const [removedEvent] = ratingHistory.splice(idx, 1);
+  const key = normalizeUsername(removedEvent.key || removedEvent.displayName) || 'anonimo';
+  const existing = leaderboardByUser.get(key);
+
+  if (existing) {
+    const nextScore = Math.max(0, Number(existing.totalScore || 0) - Number(removedEvent.rating || 0));
+    const nextCount = Math.max(0, Number(existing.ratingsCount || 0) - 1);
+
+    const remainingUserEvents = ratingHistory.filter((ev) => ev.key === key);
+    const prevEvent = remainingUserEvents[remainingUserEvents.length - 1];
+
+    if (nextScore <= 0 && nextCount <= 0) {
+      leaderboardByUser.delete(key);
+    } else {
+      leaderboardByUser.set(key, {
+        ...existing,
+        totalScore: nextScore,
+        ratingsCount: nextCount,
+        lastRating: prevEvent ? prevEvent.rating : null,
+        updatedAt: Date.now()
+      });
+    }
+  }
+
+  return removedEvent;
 }
 
 function getPublicVideoUrl(storagePath) {
@@ -76,7 +164,9 @@ function buildStatePayload() {
   return {
     queueItems,
     cooldownSettings,
-    lastUploadByUser: Array.from(lastUploadByUser.entries())
+    lastUploadByUser: Array.from(lastUploadByUser.entries()),
+    leaderboardByUser: Array.from(leaderboardByUser.entries()),
+    ratingHistory
   };
 }
 
@@ -149,6 +239,35 @@ function hydrateStateFromObject(parsed) {
         lastUploadByUser.set(key, ts);
       }
     }
+  }
+
+  if (Array.isArray(parsed.leaderboardByUser)) {
+    leaderboardByUser.clear();
+    for (const entry of parsed.leaderboardByUser) {
+      if (!Array.isArray(entry) || entry.length < 2) continue;
+      const rawKey = normalizeUsername(entry[0]);
+      const val = entry[1];
+      if (!val || typeof val !== 'object') continue;
+      const key = rawKey || normalizeUsername(val.displayName) || 'anonimo';
+      const totalScore = Number(val.totalScore) || 0;
+      const ratingsCount = Number(val.ratingsCount) || 0;
+      if (totalScore > 0 || ratingsCount > 0) {
+        leaderboardByUser.set(key, {
+          key,
+          displayName: formatDisplayUsername(val.displayName || key),
+          totalScore,
+          ratingsCount,
+          lastRating: Number.isFinite(Number(val.lastRating)) ? Number(val.lastRating) : null,
+          updatedAt: Number(val.updatedAt) || 0
+        });
+      }
+    }
+  }
+
+  if (Array.isArray(parsed.ratingHistory)) {
+    ratingHistory = parsed.ratingHistory
+      .filter((ev) => ev && typeof ev === 'object' && Number(ev.rating) >= 1 && Number(ev.rating) <= 10)
+      .slice(-100);
   }
 }
 
@@ -223,7 +342,11 @@ app.use(express.json());
 app.use(express.static(PUBLIC_DIR));
 
 app.get('/api/queue', (_req, res) => {
-  res.json({ items: queueItems });
+  res.json({
+    items: queueItems,
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
 });
 
 app.post('/api/queue', upload.single('file'), async (req, res) => {
@@ -316,6 +439,69 @@ app.get('/api/queue/:id/stream', (req, res) => {
   return res.redirect(302, publicUrl);
 });
 
+app.post('/api/queue/:id/rate', async (req, res) => {
+  const id = String(req.params.id || '').trim();
+  const rating = Number(req.body?.rating);
+  const removeAfterRate = req.body?.removeAfterRate !== false;
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
+    return res.status(400).json({ ok: false, error: 'La calificación debe ser un entero entre 1 y 10.' });
+  }
+
+  const idx = queueItems.findIndex((v) => v.id === id);
+  const targetVideo = idx !== -1 ? queueItems[idx] : null;
+  const targetUser = targetVideo ? targetVideo.user : String(req.body?.user || '').trim();
+
+  if (!targetUser) {
+    return res.status(404).json({ ok: false, error: 'Video o usuario no encontrado.' });
+  }
+
+  const { entry: updatedUserScore, eventEntry } = addUserScore(
+    targetUser,
+    rating,
+    targetVideo?.id || id,
+    targetVideo?.fileName || null
+  );
+
+  if (removeAfterRate && idx !== -1) {
+    const [removed] = queueItems.splice(idx, 1);
+    if (removed.storagePath) {
+      await deleteStorageObject(removed.storagePath);
+    } else {
+      await deleteFallbackVideoById(removed.id);
+    }
+  }
+
+  await saveState();
+
+  return res.json({
+    ok: true,
+    rating,
+    event: eventEntry,
+    userScore: updatedUserScore,
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
+});
+
+app.post('/api/leaderboard/undo', async (req, res) => {
+  const eventId = req.body?.eventId ? String(req.body.eventId).trim() : '';
+  const undone = undoRatingEventById(eventId || null);
+
+  if (!undone) {
+    return res.status(404).json({ ok: false, error: 'No hay calificaciones para deshacer.' });
+  }
+
+  await saveState();
+
+  return res.json({
+    ok: true,
+    undone,
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
+});
+
 app.delete('/api/queue/:id', async (req, res) => {
   const id = String(req.params.id || '').trim();
   const idx = queueItems.findIndex((v) => v.id === id);
@@ -334,6 +520,13 @@ app.delete('/api/queue/:id', async (req, res) => {
   await saveState();
 
   return res.json({ ok: true, deleted: true });
+});
+
+app.get('/api/leaderboard', (_req, res) => {
+  res.json({
+    leaderboard: getSortedLeaderboard(),
+    ratingHistory: ratingHistory.slice(-20)
+  });
 });
 
 app.get('/api/settings/cooldown', (_req, res) => {

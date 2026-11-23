@@ -356,6 +356,191 @@
             color: #9e9ea8;
         }
 
+        /* Leaderboard en la parte izquierda en la vista Feed */
+        .feed-leaderboard-panel {
+            position: fixed;
+            left: 20px;
+            top: 72px;
+            width: 276px;
+            max-height: calc(100vh - 160px);
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(145, 70, 255, 0.34);
+            border-radius: 16px;
+            padding: 14px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            z-index: 15;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .feed-leaderboard-panel.visible-in-feed {
+            display: flex;
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .leaderboard-header h3 {
+            font-size: 0.96rem;
+            font-weight: 700;
+        }
+
+        .leaderboard-undo-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 7px 9px;
+            border-radius: 10px;
+            background: rgba(255, 193, 7, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.25);
+            font-size: 0.73rem;
+            color: #ffe082;
+        }
+
+        .leaderboard-undo-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-undo-rating {
+            padding: 4px 8px;
+            border-radius: 7px;
+            border: 1px solid rgba(255, 193, 7, 0.45);
+            background: rgba(255, 193, 7, 0.16);
+            color: #ffe89e;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: background-color 0.12s ease, border-color 0.12s ease;
+        }
+
+        .btn-undo-rating:hover:not(:disabled) {
+            background: rgba(255, 193, 7, 0.28);
+            border-color: rgba(255, 193, 7, 0.75);
+        }
+
+        .btn-undo-rating:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leaderboard-row {
+            background: #111115;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 9px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .leaderboard-row.top-1 {
+            border-color: rgba(255, 215, 64, 0.55);
+            background: rgba(255, 215, 64, 0.06);
+        }
+
+        .leaderboard-row.top-2 {
+            border-color: rgba(200, 210, 224, 0.42);
+        }
+
+        .leaderboard-row.top-3 {
+            border-color: rgba(224, 142, 85, 0.42);
+        }
+
+        .leaderboard-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .leaderboard-rank {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #d8bfff;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .leaderboard-user-wrap {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .leaderboard-name {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .leaderboard-sub {
+            font-size: 0.71rem;
+            color: var(--text-muted);
+        }
+
+        .leaderboard-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .leaderboard-points {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #63f5b9;
+            background: rgba(0, 245, 147, 0.12);
+            border: 1px solid rgba(0, 245, 147, 0.30);
+            padding: 3px 9px;
+            border-radius: 999px;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-row-undo {
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            border: 1px solid rgba(255, 107, 107, 0.35);
+            background: rgba(255, 107, 107, 0.10);
+            color: #ff9b9b;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.12s ease, border-color 0.12s ease;
+        }
+
+        .btn-row-undo:hover {
+            background: rgba(255, 107, 107, 0.24);
+            border-color: rgba(255, 107, 107, 0.65);
+        }
+
         /* Paneles de control a la derecha en la vista Feed */
         .feed-cooldown-panel {
             position: fixed;
@@ -945,6 +1130,86 @@
             background: #000;
         }
 
+        /* Barra de calificación 1 al 10 */
+        .rating-bar-box {
+            margin-top: 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: #111116;
+            border: 1px solid rgba(145, 70, 255, 0.25);
+            flex-shrink: 0;
+        }
+
+        .rating-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            gap: 6px;
+        }
+
+        .rating-bar-top strong {
+            color: #e4d4ff;
+            font-size: 0.78rem;
+        }
+
+        .rating-selection-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #d8bfff;
+            background: rgba(145, 70, 255, 0.18);
+            border: 1px solid rgba(145, 70, 255, 0.4);
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .rating-selection-pill.has-pick {
+            color: #63f5b9;
+            background: rgba(0, 245, 147, 0.14);
+            border-color: rgba(0, 245, 147, 0.45);
+        }
+
+        .rating-buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+        }
+
+        .btn-rate {
+            padding: 6px 0;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: #222229;
+            color: var(--text-main);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.08s ease, background-color 0.12s ease, border-color 0.12s ease;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-rate:hover {
+            transform: translateY(-1px);
+            border-color: #b680ff;
+        }
+
+        .btn-rate.selected {
+            background: var(--accent);
+            border-color: #d8bfff;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(145, 70, 255, 0.5);
+        }
+
+        .btn-rate.high-score.selected {
+            background: #009e5c;
+            border-color: #7df7c6;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 245, 147, 0.35);
+        }
+
         .video-actions {
             display: flex;
             gap: 10px;
@@ -975,6 +1240,7 @@
             background: #00f59318;
             border-color: #00f59355;
             color: #5cf2b5;
+            font-weight: 700;
         }
 
         .btn-seen:hover {
@@ -982,16 +1248,15 @@
             border-color: #00f59399;
         }
 
-        /* Flechas a la izquierda */
+        /* Flechas en la parte inferior izquierda al abrir el Feed */
         .side-nav {
             position: fixed;
-            left: 28px;
-            top: 50%;
-            transform: translateY(-50%);
+            left: 20px;
+            bottom: 36px;
             display: none;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             z-index: 20;
         }
 
@@ -1000,13 +1265,13 @@
         }
 
         .side-btn {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            background: rgba(39, 39, 42, 0.85);
+            background: rgba(39, 39, 42, 0.88);
             color: #efeff1;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1031,18 +1296,6 @@
             bottom: 10px;
             font-size: 0.72rem;
             letter-spacing: 0.02em;
-            color: rgba(173, 173, 184, 0.65);
-            z-index: 12;
-            pointer-events: none;
-            user-select: none;
-        }
-
-        .version-tag {
-            position: fixed;
-            right: 20px;
-            bottom: 10px;
-            font-size: 0.72rem;
-            letter-spacing: 0.03em;
             color: rgba(173, 173, 184, 0.65);
             z-index: 12;
             pointer-events: none;
@@ -1092,6 +1345,7 @@
 
         @media (max-width: 1120px) {
             .user-queue-panel.visible-in-chat,
+            .feed-leaderboard-panel.visible-in-feed,
             .feed-cooldown-panel.visible-in-feed,
             .feed-volume-panel.visible-in-feed,
             .feed-users-panel.visible-in-feed {
@@ -1109,12 +1363,11 @@
                 flex-direction: row;
                 transform: none;
             }
-            .creator-credit,
-            .version-tag {
+            .creator-credit {
                 position: static;
                 width: 100%;
                 max-width: 480px;
-                margin: 8px auto 4px auto;
+                margin: 14px auto 4px auto;
                 text-align: center;
             }
             body {
@@ -1130,10 +1383,6 @@
         @media (max-width: 680px) {
             .queue-pill {
                 display: none;
-            }
-            .side-nav {
-                left: 10px;
-                gap: 10px;
             }
             .side-btn {
                 width: 40px;
@@ -1229,6 +1478,21 @@
         </div>
     </aside>
 
+    <!-- Leaderboard a la izquierda en la vista Feed -->
+    <aside id="feed-leaderboard-panel" class="feed-leaderboard-panel" aria-label="Leaderboard de calificaciones">
+        <div class="leaderboard-header">
+            <h3>🏆 Leaderboard</h3>
+            <span id="leaderboard-count-badge" class="status-pill pending">0 top</span>
+        </div>
+        <div class="leaderboard-undo-bar">
+            <span id="leaderboard-undo-text" class="leaderboard-undo-text">Sin calificaciones recientes</span>
+            <button type="button" id="btn-undo-last-rating" class="btn-undo-rating" onclick="undoLastRating()" disabled>↩ Deshacer</button>
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+            <div class="empty-state">Aún no hay calificaciones registradas.</div>
+        </div>
+    </aside>
+
     <aside id="feed-cooldown-panel" class="feed-cooldown-panel" aria-label="Control de cooldown">
         <div class="feed-cooldown-header">
             <div style="display:flex; align-items:center; gap:6px;">
@@ -1281,7 +1545,6 @@
     </div>
 
     <div class="creator-credit">by RaFah</div>
-    <div class="version-tag">rc17-0024</div>
 
     <div id="admin-auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div class="modal-box">
@@ -1334,11 +1597,17 @@
         const COOLDOWN_TRACK_KEY = 'reaccion17_last_upload_by_user_v1';
         const VOLUME_STORAGE_KEY = 'reaccion17_player_volume_v1';
         const MUTED_STORAGE_KEY = 'reaccion17_player_muted_v1';
+        const LEADERBOARD_LOCAL_KEY = 'reaccion17_leaderboard_v1';
+        const RATING_HISTORY_LOCAL_KEY = 'reaccion17_rating_history_v1';
 
         let cooldownConfig = {
             enabled: true,
             minutes: 120
         };
+
+        let leaderboard = [];
+        let ratingHistory = [];
+        const selectedRatingByVideoId = new Map();
 
         let volumeState = {
             volume: 0.8,
@@ -1354,6 +1623,214 @@
         let meterRafId = null;
         let scrollSyncRaf = null;
         let pollTimer = null;
+
+        function normalizeUser(name) {
+            return String(name || '').trim().replace(/^@+/, '').toLowerCase();
+        }
+
+        function formatDisplayUser(name) {
+            const clean = String(name || '').trim().replace(/^@+/, '');
+            return clean ? `@${clean}` : '@Anónimo';
+        }
+
+        function loadLocalLeaderboard() {
+            try {
+                const raw = localStorage.getItem(LEADERBOARD_LOCAL_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveLocalLeaderboard(items) {
+            try {
+                localStorage.setItem(LEADERBOARD_LOCAL_KEY, JSON.stringify(items));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        function loadLocalRatingHistory() {
+            try {
+                const raw = localStorage.getItem(RATING_HISTORY_LOCAL_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function saveLocalRatingHistory(items) {
+            try {
+                localStorage.setItem(RATING_HISTORY_LOCAL_KEY, JSON.stringify(items.slice(-100)));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        function sortLeaderboardItems(items) {
+            return [...items]
+                .filter(entry => entry && Number(entry.totalScore) > 0)
+                .sort((a, b) => {
+                    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+                    if (b.ratingsCount !== a.ratingsCount) return b.ratingsCount - a.ratingsCount;
+                    return String(a.displayName || '').localeCompare(String(b.displayName || ''));
+                });
+        }
+
+        function applyScoreToLeaderboardLocal(rawUsername, rating, videoId = null) {
+            const key = normalizeUser(rawUsername) || 'anonimo';
+            const displayName = formatDisplayUser(rawUsername);
+            const currentMap = new Map();
+
+            leaderboard.forEach(item => {
+                const k = normalizeUser(item.key || item.displayName);
+                if (k) currentMap.set(k, { ...item, key: k });
+            });
+
+            const existing = currentMap.get(key) || {
+                key,
+                displayName,
+                totalScore: 0,
+                ratingsCount: 0,
+                lastRating: null,
+                updatedAt: 0
+            };
+
+            existing.displayName = displayName;
+            existing.totalScore = Number(existing.totalScore || 0) + rating;
+            existing.ratingsCount = Number(existing.ratingsCount || 0) + 1;
+            existing.lastRating = rating;
+            existing.updatedAt = Date.now();
+
+            currentMap.set(key, existing);
+            leaderboard = sortLeaderboardItems(Array.from(currentMap.values()));
+            saveLocalLeaderboard(leaderboard);
+
+            const localEvent = {
+                eventId: `local_evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                key,
+                displayName,
+                rating,
+                videoId,
+                createdAt: Date.now()
+            };
+            ratingHistory = [...ratingHistory, localEvent].slice(-100);
+            saveLocalRatingHistory(ratingHistory);
+
+            renderLeaderboardPanel();
+            return localEvent.eventId;
+        }
+
+        function undoRatingLocal(eventId = null) {
+            const idx = eventId
+                ? ratingHistory.findIndex(ev => ev.eventId === eventId)
+                : ratingHistory.length - 1;
+
+            if (idx === -1) return null;
+
+            const [removed] = ratingHistory.splice(idx, 1);
+            saveLocalRatingHistory(ratingHistory);
+
+            const key = normalizeUser(removed.key || removed.displayName) || 'anonimo';
+            const map = new Map();
+            leaderboard.forEach(item => {
+                const k = normalizeUser(item.key || item.displayName);
+                if (k) map.set(k, { ...item, key: k });
+            });
+
+            const existing = map.get(key);
+            if (existing) {
+                const nextScore = Math.max(0, Number(existing.totalScore || 0) - Number(removed.rating || 0));
+                const nextCount = Math.max(0, Number(existing.ratingsCount || 0) - 1);
+                const remainingUserEvents = ratingHistory.filter(ev => ev.key === key);
+                const prevEvent = remainingUserEvents[remainingUserEvents.length - 1];
+
+                if (nextScore <= 0 && nextCount <= 0) {
+                    map.delete(key);
+                } else {
+                    map.set(key, {
+                        ...existing,
+                        totalScore: nextScore,
+                        ratingsCount: nextCount,
+                        lastRating: prevEvent ? prevEvent.rating : null,
+                        updatedAt: Date.now()
+                    });
+                }
+            }
+
+            leaderboard = sortLeaderboardItems(Array.from(map.values()));
+            saveLocalLeaderboard(leaderboard);
+            renderLeaderboardPanel();
+            return removed;
+        }
+
+        function renderLeaderboardPanel() {
+            const panel = document.getElementById('feed-leaderboard-panel');
+            const listEl = document.getElementById('leaderboard-list');
+            const badgeEl = document.getElementById('leaderboard-count-badge');
+            const undoTextEl = document.getElementById('leaderboard-undo-text');
+            const undoBtnEl = document.getElementById('btn-undo-last-rating');
+            const adminActive = document.getElementById('view-admin').classList.contains('active') && isAdminAuthenticated();
+
+            if (panel) {
+                panel.classList.toggle('visible-in-feed', Boolean(adminActive));
+            }
+            if (!adminActive || !listEl || !badgeEl) return;
+
+            const lastEvent = ratingHistory.length > 0 ? ratingHistory[ratingHistory.length - 1] : null;
+            if (undoTextEl && undoBtnEl) {
+                if (lastEvent) {
+                    undoTextEl.textContent = `Última: ${lastEvent.displayName} (+${lastEvent.rating})`;
+                    undoTextEl.title = `Deshacer +${lastEvent.rating} pts para ${lastEvent.displayName}`;
+                    undoBtnEl.disabled = false;
+                } else {
+                    undoTextEl.textContent = 'Sin calificaciones recientes';
+                    undoTextEl.title = '';
+                    undoBtnEl.disabled = true;
+                }
+            }
+
+            const sorted = sortLeaderboardItems(leaderboard);
+            badgeEl.textContent = `${sorted.length} ${sorted.length === 1 ? 'top' : 'top'}`;
+
+            if (sorted.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">Elige un número del 1 al 10 y pulsa Visto para sumar puntos.</div>';
+                return;
+            }
+
+            const medals = ['🥇', '🥈', '🥉'];
+            listEl.innerHTML = sorted.slice(0, 15).map((entry, idx) => {
+                const rankIcon = medals[idx] || `#${idx + 1}`;
+                const topClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
+                const count = Number(entry.ratingsCount) || 1;
+                const avg = (Number(entry.totalScore || 0) / count).toFixed(1);
+                const entryKey = normalizeUser(entry.key || entry.displayName);
+                const latestUserEvent = [...ratingHistory].reverse().find(ev => ev.key === entryKey);
+
+                return `
+                    <div class="leaderboard-row ${topClass}">
+                        <div class="leaderboard-left">
+                            <span class="leaderboard-rank">${rankIcon}</span>
+                            <div class="leaderboard-user-wrap">
+                                <span class="leaderboard-name" title="${entry.displayName}">${entry.displayName}</span>
+                                <span class="leaderboard-sub">${count} ${count === 1 ? 'clip' : 'clips'} · prom ${avg}/10</span>
+                            </div>
+                        </div>
+                        <div class="leaderboard-right">
+                            <span class="leaderboard-points">${entry.totalScore} pts</span>
+                            ${latestUserEvent
+                                ? `<button type="button" class="btn-row-undo" onclick="undoRating('${latestUserEvent.eventId}')" title="Quitar última calificación (+${latestUserEvent.rating}) de ${entry.displayName}">↩</button>`
+                                : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        leaderboard = sortLeaderboardItems(loadLocalLeaderboard());
+        ratingHistory = loadLocalRatingHistory();
 
         function loadSavedVolumeState() {
             try {
@@ -1513,10 +1990,6 @@
         const savedUsername = localStorage.getItem('denora_last_username');
         if (savedUsername) {
             document.getElementById('username').value = savedUsername;
-        }
-
-        function normalizeUser(name) {
-            return String(name || '').trim().replace(/^@+/, '').toLowerCase();
         }
 
         function loadCooldownMap() {
@@ -1893,7 +2366,7 @@
                 }
             });
 
-            badgeEl.textContent = `${activeForUser.length} ${activeForUser.length === 1 ? 'en cola' : 'en cola'}`;
+            badgeEl.textContent = `${activeForUser.length} en cola`;
             if (clearSeenBtn) {
                 clearSeenBtn.style.display = seenCount > 0 ? 'inline-flex' : 'none';
             }
@@ -1939,6 +2412,7 @@
             if (volPanel) {
                 volPanel.classList.toggle('visible-in-feed', Boolean(adminActive));
             }
+            renderLeaderboardPanel();
             if (!panel || !listEl || !totalBadge) return;
 
             panel.classList.toggle('visible-in-feed', Boolean(adminActive));
@@ -2176,7 +2650,7 @@
                 const current = getCurrentFeedVideo();
                 if (current) {
                     e.preventDefault();
-                    deleteVideo(current.id);
+                    markVideoSeen(current.id);
                 }
             }
         });
@@ -2336,13 +2810,97 @@
             }
         });
 
-        async function deleteVideo(id) {
+        function updateCardRatingSelectionUI(videoId) {
+            const card = document.querySelector(`.video-card[data-video-id="${videoId}"]`);
+            if (!card) return;
+            const picked = selectedRatingByVideoId.get(videoId) || null;
+
+            const pill = card.querySelector('.rating-selection-pill');
+            if (pill) {
+                pill.textContent = picked ? `${picked}/10 elegidos` : 'Sin puntuación';
+                pill.classList.toggle('has-pick', Boolean(picked));
+            }
+
+            card.querySelectorAll('.btn-rate').forEach(btn => {
+                const val = Number(btn.dataset.rating);
+                btn.classList.toggle('selected', picked === val);
+            });
+
+            const seenBtn = card.querySelector('.btn-seen');
+            if (seenBtn) {
+                seenBtn.textContent = picked
+                    ? `✓ Visto (+${picked} pts)`
+                    : '✓ Visto';
+            }
+        }
+
+        function selectVideoRating(videoId, rating) {
+            if (!isAdminAuthenticated()) return;
+            const parsed = Number(rating);
+            if (!Number.isInteger(parsed) || parsed < 1 || parsed > 10) return;
+
+            const currentPick = selectedRatingByVideoId.get(videoId);
+            if (currentPick === parsed) {
+                selectedRatingByVideoId.delete(videoId);
+            } else {
+                selectedRatingByVideoId.set(videoId, parsed);
+            }
+            updateCardRatingSelectionUI(videoId);
+        }
+
+        async function undoLastRating() {
+            if (!isAdminAuthenticated()) return;
+            const lastEvent = ratingHistory[ratingHistory.length - 1];
+            if (!lastEvent) return;
+            await undoRating(lastEvent.eventId);
+        }
+
+        async function undoRating(eventId) {
+            if (!isAdminAuthenticated() || !eventId) return;
+
+            undoRatingLocal(eventId);
+
+            if (!String(eventId).startsWith('local_evt_')) {
+                try {
+                    const resp = await fetch(`${API_BASE}/api/leaderboard/undo`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ eventId })
+                    });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (Array.isArray(data?.leaderboard)) {
+                            leaderboard = sortLeaderboardItems(data.leaderboard);
+                            saveLocalLeaderboard(leaderboard);
+                        }
+                        if (Array.isArray(data?.ratingHistory)) {
+                            ratingHistory = data.ratingHistory.slice(-100);
+                            saveLocalRatingHistory(ratingHistory);
+                        }
+                        renderLeaderboardPanel();
+                    }
+                } catch {
+                    // Mantener estado local si no hay conexión
+                }
+            }
+        }
+
+        async function markVideoSeen(id) {
             unlockAudioContext();
             playSeenSound();
 
+            const pickedRating = Number(selectedRatingByVideoId.get(id));
+            const hasRating = Number.isInteger(pickedRating) && pickedRating >= 1 && pickedRating <= 10;
+            selectedRatingByVideoId.delete(id);
+
             const target = videos.find(v => v.id === id);
+            const targetUser = target?.user || 'Anónimo';
             if (target?.blobUrl) {
                 URL.revokeObjectURL(target.blobUrl);
+            }
+
+            if (hasRating) {
+                applyScoreToLeaderboardLocal(targetUser, pickedRating, id);
             }
 
             videos = videos.filter(v => v.id !== id);
@@ -2355,11 +2913,35 @@
 
             if (!String(id).startsWith('local_')) {
                 try {
-                    await fetch(`${API_BASE}/api/queue/${encodeURIComponent(id)}`, {
-                        method: 'DELETE'
-                    });
+                    if (hasRating) {
+                        const resp = await fetch(`${API_BASE}/api/queue/${encodeURIComponent(id)}/rate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                rating: pickedRating,
+                                user: targetUser,
+                                removeAfterRate: true
+                            })
+                        });
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (Array.isArray(data?.leaderboard)) {
+                                leaderboard = sortLeaderboardItems(data.leaderboard);
+                                saveLocalLeaderboard(leaderboard);
+                            }
+                            if (Array.isArray(data?.ratingHistory)) {
+                                ratingHistory = data.ratingHistory.slice(-100);
+                                saveLocalRatingHistory(ratingHistory);
+                            }
+                            renderLeaderboardPanel();
+                        }
+                    } else {
+                        await fetch(`${API_BASE}/api/queue/${encodeURIComponent(id)}`, {
+                            method: 'DELETE'
+                        });
+                    }
                 } catch {
-                    // Ignorar error de red al borrar
+                    // Ignorar error de red al actualizar
                 }
             }
         }
@@ -2371,6 +2953,10 @@
             card.dataset.videoId = v.id;
             card.dataset.mediaKey = src;
 
+            const ratingButtonsHtml = Array.from({ length: 10 }, (_, i) => i + 1)
+                .map(n => `<button type="button" class="btn-rate ${n >= 8 ? 'high-score' : ''}" data-rating="${n}" onclick="selectVideoRating('${v.id}', ${n})" title="Elegir ${n} pts para @${v.user}">${n}</button>`)
+                .join('');
+
             card.innerHTML = `
                 <div class="video-header">
                     <span class="user-badge">@${v.user} <small class="queue-counter" style="color:#adadb8; font-weight:normal;">(${index + 1}/${total})</small></span>
@@ -2381,8 +2967,17 @@
                 <div class="player-container" onclick="unlockAudioContext()">
                     <video crossorigin="anonymous" data-src="${src}" controls playsinline preload="metadata"></video>
                 </div>
+                <div class="rating-bar-box" aria-label="Calificar video del 1 al 10">
+                    <div class="rating-bar-top">
+                        <span>⭐ Puntuar a <strong>@${v.user}</strong></span>
+                        <span class="rating-selection-pill">Sin puntuación</span>
+                    </div>
+                    <div class="rating-buttons-grid">
+                        ${ratingButtonsHtml}
+                    </div>
+                </div>
                 <div class="video-actions">
-                    <button type="button" onclick="deleteVideo('${v.id}')" class="btn-small btn-seen">✓ Visto</button>
+                    <button type="button" onclick="markVideoSeen('${v.id}')" class="btn-small btn-seen">✓ Visto</button>
                 </div>
             `;
 
@@ -2460,6 +3055,7 @@
                         container.insertBefore(cardEl, container.children[index] || null);
                     }
                 }
+                updateCardRatingSelectionUI(v.id);
             });
 
             updateSideNavVisibility();
@@ -2474,6 +3070,14 @@
                 const resp = await fetch(`${API_BASE}/api/queue`);
                 if (!resp.ok) return;
                 const data = await resp.json();
+                if (Array.isArray(data?.leaderboard)) {
+                    leaderboard = sortLeaderboardItems(data.leaderboard);
+                    saveLocalLeaderboard(leaderboard);
+                }
+                if (Array.isArray(data?.ratingHistory)) {
+                    ratingHistory = data.ratingHistory.slice(-100);
+                    saveLocalRatingHistory(ratingHistory);
+                }
                 const remoteList = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
                 const localItems = videos.filter(v => String(v.id).startsWith('local_'));
 
