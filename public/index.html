@@ -263,9 +263,9 @@
         .user-queue-panel {
             position: fixed;
             right: 20px;
-            top: 72px;
+            top: 56px;
             width: 280px;
-            max-height: calc(100vh - 360px);
+            max-height: calc(100vh - 340px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -391,7 +391,7 @@
             color: #9e9ea8;
         }
 
-        /* Leaderboard abajo a la derecha (debajo de Usuarios en cola en Feed, y debajo de Tus videos en Chat) */
+        /* Leaderboard abajo a la derecha */
         .leaderboard-panel {
             position: fixed;
             right: 20px;
@@ -399,10 +399,10 @@
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.34);
             border-radius: 16px;
-            padding: 14px;
+            padding: 12px 14px;
             display: none;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow-y: auto;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
@@ -410,15 +410,15 @@
 
         .leaderboard-panel.visible-in-feed {
             display: flex;
-            top: 472px;
-            bottom: 16px;
+            top: 356px;
+            bottom: 14px;
             max-height: none;
         }
 
         .leaderboard-panel.visible-in-chat {
             display: flex;
-            top: 320px;
-            bottom: 16px;
+            top: 292px;
+            bottom: 14px;
             max-height: none;
         }
 
@@ -427,7 +427,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            padding-bottom: 8px;
+            padding-bottom: 7px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -441,7 +441,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 7px 9px;
+            padding: 6px 9px;
             border-radius: 10px;
             background: rgba(255, 193, 7, 0.08);
             border: 1px solid rgba(255, 193, 7, 0.25);
@@ -491,14 +491,14 @@
         .leaderboard-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 7px;
         }
 
         .leaderboard-row {
             background: #111115;
             border: 1px solid var(--border);
             border-radius: 11px;
-            padding: 9px 11px;
+            padding: 8px 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -546,7 +546,7 @@
         }
 
         .leaderboard-name {
-            font-size: 0.86rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-main);
             white-space: nowrap;
@@ -555,38 +555,39 @@
         }
 
         .leaderboard-sub {
-            font-size: 0.71rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
         }
 
         .leaderboard-right {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             flex-shrink: 0;
         }
 
         .leaderboard-points {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 800;
             color: #63f5b9;
             background: rgba(0, 245, 147, 0.12);
             border: 1px solid rgba(0, 245, 147, 0.30);
-            padding: 3px 9px;
+            padding: 3px 8px;
             border-radius: 999px;
             white-space: nowrap;
             font-variant-numeric: tabular-nums;
             transition: transform 0.16s var(--ease-smooth), background-color 0.2s var(--ease-smooth);
         }
 
-        .btn-row-undo {
+        .btn-row-undo,
+        .btn-row-remove {
             width: 24px;
             height: 24px;
             border-radius: 7px;
             border: 1px solid rgba(255, 107, 107, 0.35);
             background: rgba(255, 107, 107, 0.10);
             color: #ff9b9b;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
             display: inline-flex;
@@ -595,29 +596,31 @@
             transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth), border-color 0.16s var(--ease-smooth);
         }
 
-        .btn-row-undo:hover {
+        .btn-row-undo:hover,
+        .btn-row-remove:hover {
             transform: translateY(-1px);
-            background: rgba(255, 107, 107, 0.24);
-            border-color: rgba(255, 107, 107, 0.65);
+            background: rgba(255, 107, 107, 0.25);
+            border-color: rgba(255, 107, 107, 0.7);
         }
 
-        .btn-row-undo:active {
+        .btn-row-undo:active,
+        .btn-row-remove:active {
             transform: scale(0.92);
         }
 
-        /* Paneles de control a la derecha en la vista Feed */
+        /* Paneles de control a la derecha en la vista Feed (subidos más arriba) */
         .feed-cooldown-panel {
             position: fixed;
             right: 20px;
-            top: 72px;
+            top: 20px;
             width: 280px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
-            padding: 12px 14px;
+            padding: 10px 14px;
             display: none;
             flex-direction: column;
-            gap: 8px;
+            gap: 7px;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
         }
@@ -645,15 +648,15 @@
         .feed-volume-panel {
             position: fixed;
             right: 20px;
-            top: 170px;
+            top: 108px;
             width: 280px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
-            padding: 12px 14px;
+            padding: 10px 14px;
             display: none;
             flex-direction: column;
-            gap: 8px;
+            gap: 7px;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
         }
@@ -788,16 +791,16 @@
         .feed-users-panel {
             position: fixed;
             right: 20px;
-            top: 292px;
+            top: 218px;
             width: 280px;
-            height: 168px;
+            height: 126px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
-            padding: 14px;
+            padding: 12px 14px;
             display: none;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow-y: auto;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
@@ -812,26 +815,26 @@
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--border);
         }
 
         .feed-users-header h3 {
-            font-size: 0.94rem;
+            font-size: 0.92rem;
             font-weight: 700;
         }
 
         .feed-users-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .feed-user-row {
             background: #111115;
             border: 1px solid var(--border);
-            border-radius: 11px;
-            padding: 9px 11px;
+            border-radius: 10px;
+            padding: 7px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -851,7 +854,7 @@
         }
 
         .feed-user-name {
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 600;
             color: #d8bfff;
             overflow: hidden;
@@ -860,9 +863,9 @@
         }
 
         .feed-user-count {
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            padding: 3px 9px;
+            padding: 2px 8px;
             border-radius: 999px;
             background: rgba(145, 70, 255, 0.20);
             color: #e6d4ff;
@@ -1494,6 +1497,7 @@
             .btn-clear-seen,
             .btn-undo-rating,
             .btn-row-undo,
+            .btn-row-remove,
             .btn-mute-toggle,
             .side-btn,
             .feed-user-row,
@@ -1563,8 +1567,8 @@
         .empty-state {
             text-align: center;
             color: var(--text-muted);
-            padding: 24px 0;
-            font-size: 0.88rem;
+            padding: 18px 0;
+            font-size: 0.86rem;
         }
     </style>
 </head>
@@ -1689,7 +1693,7 @@
         </div>
     </aside>
 
-    <!-- Leaderboard abajo a la derecha (debajo de Usuarios en cola) y visible también en Vista Chat -->
+    <!-- Leaderboard abajo a la derecha -->
     <aside id="leaderboard-panel" class="leaderboard-panel visible-in-chat" aria-label="Leaderboard de participantes">
         <div class="leaderboard-header">
             <h3>🏆 Leaderboard</h3>
@@ -1768,6 +1772,7 @@
         const MUTED_STORAGE_KEY = 'reaccion17_player_muted_v1';
         const LEADERBOARD_LOCAL_KEY = 'reaccion17_leaderboard_v1';
         const RATING_HISTORY_LOCAL_KEY = 'reaccion17_rating_history_v1';
+        const REMOVED_BOARD_USERS_KEY = 'reaccion17_removed_board_users_v1';
 
         let cooldownConfig = {
             enabled: true,
@@ -1801,6 +1806,26 @@
             const clean = String(name || '').trim().replace(/^@+/, '');
             return clean ? `@${clean}` : '@Anónimo';
         }
+
+        function loadRemovedBoardUsers() {
+            try {
+                const raw = localStorage.getItem(REMOVED_BOARD_USERS_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                return new Set(Array.isArray(parsed) ? parsed.map(normalizeUser).filter(Boolean) : []);
+            } catch {
+                return new Set();
+            }
+        }
+
+        function saveRemovedBoardUsers(setObj) {
+            try {
+                localStorage.setItem(REMOVED_BOARD_USERS_KEY, JSON.stringify(Array.from(setObj)));
+            } catch {
+                // Ignorar errores de cuota
+            }
+        }
+
+        let removedBoardUsers = loadRemovedBoardUsers();
 
         function loadLocalLeaderboard() {
             try {
@@ -1844,6 +1869,7 @@
             (Array.isArray(items) ? items : []).forEach(entry => {
                 if (!entry || typeof entry !== 'object') return;
                 const key = normalizeUser(entry.key || entry.displayName) || 'anonimo';
+                if (removedBoardUsers.has(key)) return;
                 const displayName = formatDisplayUser(entry.displayName || key);
                 const totalScore = Number(entry.totalScore) || 0;
                 const ratingsCount = Number(entry.ratingsCount) || 0;
@@ -1863,7 +1889,7 @@
 
             videos.forEach(v => {
                 const key = normalizeUser(v?.user);
-                if (!key) return;
+                if (!key || removedBoardUsers.has(key)) return;
                 if (!merged.has(key)) {
                     merged.set(key, {
                         key,
@@ -1879,7 +1905,7 @@
 
             loadMyHistory().forEach(h => {
                 const key = normalizeUser(h?.user);
-                if (!key) return;
+                if (!key || removedBoardUsers.has(key)) return;
                 if (!merged.has(key)) {
                     merged.set(key, {
                         key,
@@ -1907,6 +1933,10 @@
         function registerSubmittedUserInLeaderboard(rawUsername) {
             const key = normalizeUser(rawUsername);
             if (!key) return;
+            if (removedBoardUsers.has(key)) {
+                removedBoardUsers.delete(key);
+                saveRemovedBoardUsers(removedBoardUsers);
+            }
             const displayName = formatDisplayUser(rawUsername);
             const map = new Map();
             leaderboard.forEach(item => {
@@ -1933,6 +1963,10 @@
 
         function applyScoreToLeaderboardLocal(rawUsername, rating, videoId = null) {
             const key = normalizeUser(rawUsername) || 'anonimo';
+            if (removedBoardUsers.has(key)) {
+                removedBoardUsers.delete(key);
+                saveRemovedBoardUsers(removedBoardUsers);
+            }
             const displayName = formatDisplayUser(rawUsername);
             const currentMap = new Map();
 
@@ -2021,6 +2055,46 @@
             return removed;
         }
 
+        async function removeUserFromLeaderboard(userKey, displayName = '') {
+            if (!isAdminAuthenticated()) return;
+            const normKey = normalizeUser(userKey || displayName);
+            if (!normKey) return;
+
+            removedBoardUsers.add(normKey);
+            saveRemovedBoardUsers(removedBoardUsers);
+
+            ratingHistory = ratingHistory.filter(ev => normalizeUser(ev.key || ev.displayName) !== normKey);
+            saveLocalRatingHistory(ratingHistory);
+
+            leaderboard = leaderboard.filter(item => normalizeUser(item.key || item.displayName) !== normKey);
+            saveLocalLeaderboard(leaderboard);
+            renderLeaderboardPanel();
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/leaderboard/remove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: normKey, user: displayName || normKey })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (Array.isArray(data?.leaderboard)) {
+                        leaderboard = sortLeaderboardItems(data.leaderboard);
+                        saveLocalLeaderboard(leaderboard);
+                    }
+                    if (Array.isArray(data?.ratingHistory)) {
+                        ratingHistory = data.ratingHistory
+                            .filter(ev => normalizeUser(ev.key || ev.displayName) !== normKey)
+                            .slice(-100);
+                        saveLocalRatingHistory(ratingHistory);
+                    }
+                    renderLeaderboardPanel();
+                }
+            } catch {
+                // Mantener eliminación local si el backend no tiene este endpoint aún
+            }
+        }
+
         function renderLeaderboardPanel() {
             const panel = document.getElementById('leaderboard-panel');
             const listEl = document.getElementById('leaderboard-list');
@@ -2088,6 +2162,9 @@
                             <span class="leaderboard-points">${score} pts</span>
                             ${canModify && latestUserEvent
                                 ? `<button type="button" class="btn-row-undo" onclick="undoRating('${latestUserEvent.eventId}')" title="Quitar última calificación (+${latestUserEvent.rating}) de ${entry.displayName}">↩</button>`
+                                : ''}
+                            ${canModify
+                                ? `<button type="button" class="btn-row-remove" onclick="removeUserFromLeaderboard('${entryKey}', '${entry.displayName.replace(/'/g, "\\'")}')" title="Eliminar a ${entry.displayName} del leaderboard">🗑️</button>`
                                 : ''}
                         </div>
                     </div>
@@ -3354,7 +3431,9 @@
                     leaderboard = sortLeaderboardItems(leaderboard);
                 }
                 if (Array.isArray(data?.ratingHistory)) {
-                    ratingHistory = data.ratingHistory.slice(-100);
+                    ratingHistory = data.ratingHistory
+                        .filter(ev => !removedBoardUsers.has(normalizeUser(ev.key || ev.displayName)))
+                        .slice(-100);
                     saveLocalRatingHistory(ratingHistory);
                 }
 
