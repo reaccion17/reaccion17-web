@@ -263,16 +263,17 @@
         .user-queue-panel {
             position: fixed;
             right: 20px;
-            top: 56px;
+            top: 20px;
             width: 280px;
-            max-height: calc(100vh - 340px);
+            height: calc((100vh - 48px) * 0.36);
+            max-height: none;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
-            padding: 14px;
+            padding: 12px 14px;
             display: none;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             overflow-y: auto;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
@@ -287,17 +288,18 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 8px;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .user-queue-header h3 {
-            font-size: 0.98rem;
+            font-size: 0.96rem;
             font-weight: 700;
         }
 
         .user-queue-sub {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--text-muted);
         }
 
@@ -305,7 +307,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 6px;
+            gap: 5px;
             flex-shrink: 0;
         }
 
@@ -336,17 +338,20 @@
         .my-video-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .my-video-item {
             background: #111115;
             border: 1px solid var(--border);
             border-radius: 11px;
-            padding: 10px 12px;
+            padding: 9px 11px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
+            flex-shrink: 0;
             transition: border-color 0.18s var(--ease-smooth), background-color 0.18s var(--ease-smooth);
         }
 
@@ -387,7 +392,7 @@
         }
 
         .my-video-meta {
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: #9e9ea8;
         }
 
@@ -417,7 +422,7 @@
 
         .leaderboard-panel.visible-in-chat {
             display: flex;
-            top: 292px;
+            top: calc(20px + (100vh - 48px) * 0.36 + 14px);
             bottom: 14px;
             max-height: none;
         }
@@ -429,6 +434,7 @@
             gap: 8px;
             padding-bottom: 7px;
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .leaderboard-header h3 {
@@ -447,6 +453,7 @@
             border: 1px solid rgba(255, 193, 7, 0.25);
             font-size: 0.73rem;
             color: #ffe082;
+            flex-shrink: 0;
         }
 
         .leaderboard-undo-bar.admin-visible {
@@ -492,6 +499,8 @@
             display: flex;
             flex-direction: column;
             gap: 7px;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .leaderboard-row {
@@ -503,6 +512,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            flex-shrink: 0;
             transition: transform 0.15s var(--ease-smooth), border-color 0.18s var(--ease-smooth), background-color 0.18s var(--ease-smooth);
         }
 
@@ -608,7 +618,7 @@
             transform: scale(0.92);
         }
 
-        /* Paneles de control a la derecha en la vista Feed (subidos más arriba) */
+        /* Paneles de control a la derecha en la vista Feed */
         .feed-cooldown-panel {
             position: fixed;
             right: 20px;
