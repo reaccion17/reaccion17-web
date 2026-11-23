@@ -442,6 +442,37 @@
             font-weight: 700;
         }
 
+        .leaderboard-header-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-gear-board {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(182, 128, 255, 0.35);
+            background: rgba(145, 70, 255, 0.14);
+            color: #e9d8ff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.14s var(--ease-smooth), background-color 0.18s var(--ease-smooth), border-color 0.18s var(--ease-smooth);
+        }
+
+        .btn-gear-board:hover {
+            transform: translateY(-1px) rotate(25deg);
+            background: rgba(145, 70, 255, 0.28);
+            border-color: rgba(182, 128, 255, 0.72);
+        }
+
+        .btn-gear-board:active {
+            transform: scale(0.92);
+        }
+
         .leaderboard-list {
             display: flex;
             flex-direction: column;
@@ -519,7 +550,7 @@
         .leaderboard-right {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             flex-shrink: 0;
         }
 
@@ -529,52 +560,93 @@
             color: #63f5b9;
             background: rgba(0, 245, 147, 0.12);
             border: 1px solid rgba(0, 245, 147, 0.30);
-            padding: 3px 7px;
+            padding: 3px 8px;
             border-radius: 999px;
             white-space: nowrap;
             font-variant-numeric: tabular-nums;
             transition: transform 0.16s var(--ease-smooth), background-color 0.2s var(--ease-smooth);
         }
 
-        .btn-row-videos,
-        .btn-row-remove {
-            height: 24px;
-            border-radius: 7px;
-            border: 1px solid rgba(255, 107, 107, 0.35);
-            background: rgba(255, 107, 107, 0.10);
-            color: #ff9b9b;
-            font-size: 0.7rem;
+        /* Lista dentro de la ventana de gestión de Leaderboard */
+        .manage-board-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .manage-board-item {
+            background: #111115;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            padding: 9px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .manage-board-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .manage-board-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .manage-board-meta {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+        }
+
+        .manage-board-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-manage-sub {
+            padding: 5px 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(182, 128, 255, 0.42);
+            background: rgba(145, 70, 255, 0.16);
+            color: #e6d4ff;
+            font-size: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 6px;
-            white-space: nowrap;
-            transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth), border-color 0.16s var(--ease-smooth);
+            transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth);
         }
 
-        .btn-row-videos {
-            border-color: rgba(182, 128, 255, 0.38);
-            background: rgba(145, 70, 255, 0.14);
-            color: #e2c8ff;
-        }
-
-        .btn-row-videos:hover {
+        .btn-manage-sub:hover {
             transform: translateY(-1px);
-            background: rgba(145, 70, 255, 0.28);
-            border-color: rgba(182, 128, 255, 0.72);
+            background: rgba(145, 70, 255, 0.30);
         }
 
-        .btn-row-remove:hover {
+        .btn-manage-del {
+            padding: 5px 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 107, 107, 0.42);
+            background: rgba(255, 107, 107, 0.14);
+            color: #ff9b9b;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.14s var(--ease-smooth), background-color 0.16s var(--ease-smooth);
+        }
+
+        .btn-manage-del:hover {
             transform: translateY(-1px);
-            background: rgba(255, 107, 107, 0.25);
-            border-color: rgba(255, 107, 107, 0.7);
-        }
-
-        .btn-row-videos:active,
-        .btn-row-remove:active {
-            transform: scale(0.92);
+            background: rgba(255, 107, 107, 0.28);
         }
 
         /* Paneles de control a la derecha en la vista Feed */
@@ -1443,6 +1515,10 @@
             box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
         }
 
+        .modal-box.wide {
+            max-width: 440px;
+        }
+
         .modal-backdrop.open .modal-box {
             transform: translateY(0) scale(1);
         }
@@ -1474,8 +1550,9 @@
             .btn-rate,
             .btn-cd,
             .btn-clear-seen,
-            .btn-row-videos,
-            .btn-row-remove,
+            .btn-gear-board,
+            .btn-manage-sub,
+            .btn-manage-del,
             .btn-mute-toggle,
             .side-btn,
             .feed-user-row,
@@ -1675,7 +1752,10 @@
     <aside id="leaderboard-panel" class="leaderboard-panel visible-in-chat" aria-label="Leaderboard de participantes">
         <div class="leaderboard-header">
             <h3>🏆 Leaderboard</h3>
-            <span id="leaderboard-count-badge" class="status-pill pending">0 usuarios</span>
+            <div class="leaderboard-header-right">
+                <button type="button" id="btn-open-board-manage" class="btn-gear-board" onclick="openLeaderboardManageModal()" title="Administrar videos y usuarios del leaderboard" style="display: none;">⚙️</button>
+                <span id="leaderboard-count-badge" class="status-pill pending">0 usuarios</span>
+            </div>
         </div>
         <div id="leaderboard-list" class="leaderboard-list">
             <div class="empty-state">Aún no hay usuarios con videos registrados.</div>
@@ -1709,6 +1789,21 @@
                     <button type="submit" class="btn-small btn-seen">Entrar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="leaderboard-manage-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
+        <div class="modal-box wide">
+            <h3 id="manage-modal-title" style="margin-bottom: 4px; font-size: 1.05rem;">⚙️ Administrar Leaderboard</h3>
+            <p style="color: var(--text-muted); font-size: 0.83rem;">
+                Resta videos enviados o elimina usuarios de la tabla. Cada cambio pide confirmación.
+            </p>
+            <div id="manage-board-list" class="manage-board-list">
+                <div class="empty-state">No hay usuarios para administrar.</div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-small" onclick="closeLeaderboardManageModal()">Cerrar</button>
+            </div>
         </div>
     </div>
 
@@ -1861,6 +1956,52 @@
             const modal = document.getElementById('leaderboard-confirm-modal');
             if (modal) modal.classList.remove('open');
             pendingConfirmCallback = null;
+        }
+
+        function openLeaderboardManageModal() {
+            if (!isAdminAuthenticated()) return;
+            const modal = document.getElementById('leaderboard-manage-modal');
+            if (!modal) return;
+            renderLeaderboardManageModal();
+            modal.classList.add('open');
+        }
+
+        function closeLeaderboardManageModal() {
+            const modal = document.getElementById('leaderboard-manage-modal');
+            if (modal) modal.classList.remove('open');
+        }
+
+        function renderLeaderboardManageModal() {
+            const listEl = document.getElementById('manage-board-list');
+            if (!listEl) return;
+
+            const sorted = sortLeaderboardItems(leaderboard);
+            if (sorted.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No hay usuarios en la leaderboard para administrar.</div>';
+                return;
+            }
+
+            listEl.innerHTML = sorted.map(entry => {
+                const entryKey = normalizeUser(entry.key || entry.displayName);
+                const safeNameJs = entry.displayName.replace(/'/g, "\\'");
+                const subs = Math.max(0, Number(entry.submissionsCount) || 0);
+                const score = Number(entry.totalScore) || 0;
+
+                return `
+                    <div class="manage-board-item">
+                        <div class="manage-board-info">
+                            <span class="manage-board-name">${entry.displayName}</span>
+                            <span class="manage-board-meta">${score} pts · ${subs} ${subs === 1 ? 'video enviado' : 'videos enviados'}</span>
+                        </div>
+                        <div class="manage-board-actions">
+                            ${subs > 0
+                                ? `<button type="button" class="btn-manage-sub" onclick="promptRemoveVideoCount('${entryKey}', '${safeNameJs}', ${subs})">-1 video</button>`
+                                : ''}
+                            <button type="button" class="btn-manage-del" onclick="promptRemoveUserFromLeaderboard('${entryKey}', '${safeNameJs}')">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function loadLocalLeaderboard() {
@@ -2069,6 +2210,7 @@
             leaderboard = sortLeaderboardItems(Array.from(map.values()));
             saveLocalLeaderboard(leaderboard);
             renderLeaderboardPanel();
+            renderLeaderboardManageModal();
 
             try {
                 const resp = await fetch(`${API_BASE}/api/leaderboard/videos/remove`, {
@@ -2081,8 +2223,9 @@
                     if (Array.isArray(data?.leaderboard)) {
                         leaderboard = sortLeaderboardItems(data.leaderboard);
                         saveLocalLeaderboard(leaderboard);
-                        renderLeaderboardPanel();
                     }
+                    renderLeaderboardPanel();
+                    renderLeaderboardManageModal();
                 }
             } catch {
                 // Mantener ajuste local si el backend no tiene este endpoint aún
@@ -2113,6 +2256,7 @@
             leaderboard = leaderboard.filter(item => normalizeUser(item.key || item.displayName) !== normKey);
             saveLocalLeaderboard(leaderboard);
             renderLeaderboardPanel();
+            renderLeaderboardManageModal();
 
             try {
                 const resp = await fetch(`${API_BASE}/api/leaderboard/remove`, {
@@ -2127,6 +2271,7 @@
                         saveLocalLeaderboard(leaderboard);
                     }
                     renderLeaderboardPanel();
+                    renderLeaderboardManageModal();
                 }
             } catch {
                 // Mantener eliminación local si el backend no tiene este endpoint aún
@@ -2137,12 +2282,16 @@
             const panel = document.getElementById('leaderboard-panel');
             const listEl = document.getElementById('leaderboard-list');
             const badgeEl = document.getElementById('leaderboard-count-badge');
+            const gearBtn = document.getElementById('btn-open-board-manage');
             const adminActive = document.getElementById('view-admin').classList.contains('active');
             const canModify = adminActive && isAdminAuthenticated();
 
             if (panel) {
                 panel.classList.toggle('visible-in-feed', Boolean(adminActive));
                 panel.classList.toggle('visible-in-chat', !adminActive);
+            }
+            if (gearBtn) {
+                gearBtn.style.display = canModify ? 'inline-flex' : 'none';
             }
             if (!listEl || !badgeEl) return;
 
@@ -2164,8 +2313,6 @@
                 const subText = count > 0
                     ? `${count} ${count === 1 ? 'calif.' : 'calif.'} · prom ${(score / count).toFixed(1)}/10 · ${subs} vid.`
                     : `${subs} ${subs === 1 ? 'video enviado' : 'videos enviados'}`;
-                const entryKey = normalizeUser(entry.key || entry.displayName);
-                const safeNameJs = entry.displayName.replace(/'/g, "\\'");
 
                 return `
                     <div class="leaderboard-row ${topClass}">
@@ -2178,12 +2325,6 @@
                         </div>
                         <div class="leaderboard-right">
                             <span class="leaderboard-points">${score} pts</span>
-                            ${canModify && subs > 0
-                                ? `<button type="button" class="btn-row-videos" onclick="promptRemoveVideoCount('${entryKey}', '${safeNameJs}', ${subs})" title="Quitar 1 video enviado de ${entry.displayName} en la leaderboard">-1 vid</button>`
-                                : ''}
-                            ${canModify
-                                ? `<button type="button" class="btn-row-remove" onclick="promptRemoveUserFromLeaderboard('${entryKey}', '${safeNameJs}')" title="Eliminar a ${entry.displayName} del leaderboard">🗑️</button>`
-                                : ''}
                         </div>
                     </div>
                 `;
@@ -2988,13 +3129,15 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeAdminAuthModal();
+                closeLeaderboardManageModal();
                 closeConfirmModal();
                 return;
             }
 
             const authOpen = document.getElementById('admin-auth-modal').classList.contains('open');
+            const manageOpen = document.getElementById('leaderboard-manage-modal').classList.contains('open');
             const confirmOpen = document.getElementById('leaderboard-confirm-modal').classList.contains('open');
-            if (authOpen || confirmOpen) return;
+            if (authOpen || manageOpen || confirmOpen) return;
 
             const adminActive = document.getElementById('view-admin').classList.contains('active');
             if (!adminActive) return;
