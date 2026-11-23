@@ -236,15 +236,15 @@
             position: fixed;
             right: 20px;
             top: 72px;
-            width: 300px;
-            max-height: calc(100vh - 90px);
+            width: 280px;
+            max-height: calc(100vh - 360px);
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
-            padding: 16px;
+            padding: 14px;
             display: none;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             overflow-y: auto;
             z-index: 15;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
@@ -356,13 +356,11 @@
             color: #9e9ea8;
         }
 
-        /* Leaderboard en la parte izquierda en la vista Feed */
-        .feed-leaderboard-panel {
+        /* Leaderboard abajo a la derecha (debajo de Usuarios en cola en Feed, y debajo de Tus videos en Chat) */
+        .leaderboard-panel {
             position: fixed;
-            left: 20px;
-            top: 72px;
-            width: 276px;
-            max-height: calc(100vh - 160px);
+            right: 20px;
+            width: 280px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.34);
             border-radius: 16px;
@@ -375,8 +373,18 @@
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
         }
 
-        .feed-leaderboard-panel.visible-in-feed {
+        .leaderboard-panel.visible-in-feed {
             display: flex;
+            top: 472px;
+            bottom: 16px;
+            max-height: none;
+        }
+
+        .leaderboard-panel.visible-in-chat {
+            display: flex;
+            top: 320px;
+            bottom: 16px;
+            max-height: none;
         }
 
         .leaderboard-header {
@@ -394,7 +402,7 @@
         }
 
         .leaderboard-undo-bar {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
@@ -404,6 +412,10 @@
             border: 1px solid rgba(255, 193, 7, 0.25);
             font-size: 0.73rem;
             color: #ffe082;
+        }
+
+        .leaderboard-undo-bar.admin-visible {
+            display: flex;
         }
 
         .leaderboard-undo-text {
@@ -707,7 +719,7 @@
             right: 20px;
             top: 292px;
             width: 280px;
-            max-height: calc(100vh - 320px);
+            height: 168px;
             background: rgba(24, 24, 27, 0.96);
             border: 1px solid rgba(145, 70, 255, 0.30);
             border-radius: 16px;
@@ -1345,7 +1357,8 @@
 
         @media (max-width: 1120px) {
             .user-queue-panel.visible-in-chat,
-            .feed-leaderboard-panel.visible-in-feed,
+            .leaderboard-panel.visible-in-feed,
+            .leaderboard-panel.visible-in-chat,
             .feed-cooldown-panel.visible-in-feed,
             .feed-volume-panel.visible-in-feed,
             .feed-users-panel.visible-in-feed {
@@ -1353,7 +1366,10 @@
                 width: 100%;
                 max-width: 480px;
                 margin: 12px auto 0 auto;
+                height: auto;
                 max-height: none;
+                top: auto;
+                bottom: auto;
                 box-shadow: none;
             }
             .side-nav.visible {
@@ -1478,21 +1494,6 @@
         </div>
     </aside>
 
-    <!-- Leaderboard a la izquierda en la vista Feed -->
-    <aside id="feed-leaderboard-panel" class="feed-leaderboard-panel" aria-label="Leaderboard de calificaciones">
-        <div class="leaderboard-header">
-            <h3>🏆 Leaderboard</h3>
-            <span id="leaderboard-count-badge" class="status-pill pending">0 top</span>
-        </div>
-        <div class="leaderboard-undo-bar">
-            <span id="leaderboard-undo-text" class="leaderboard-undo-text">Sin calificaciones recientes</span>
-            <button type="button" id="btn-undo-last-rating" class="btn-undo-rating" onclick="undoLastRating()" disabled>↩ Deshacer</button>
-        </div>
-        <div id="leaderboard-list" class="leaderboard-list">
-            <div class="empty-state">Aún no hay calificaciones registradas.</div>
-        </div>
-    </aside>
-
     <aside id="feed-cooldown-panel" class="feed-cooldown-panel" aria-label="Control de cooldown">
         <div class="feed-cooldown-header">
             <div style="display:flex; align-items:center; gap:6px;">
@@ -1532,6 +1533,21 @@
         </div>
         <div id="feed-users-list" class="feed-users-list">
             <div class="empty-state">No hay usuarios con videos en cola.</div>
+        </div>
+    </aside>
+
+    <!-- Leaderboard abajo a la derecha (debajo de Usuarios en cola) y visible también en Vista Chat -->
+    <aside id="leaderboard-panel" class="leaderboard-panel visible-in-chat" aria-label="Leaderboard de participantes">
+        <div class="leaderboard-header">
+            <h3>🏆 Leaderboard</h3>
+            <span id="leaderboard-count-badge" class="status-pill pending">0 usuarios</span>
+        </div>
+        <div id="leaderboard-undo-bar" class="leaderboard-undo-bar">
+            <span id="leaderboard-undo-text" class="leaderboard-undo-text">Sin calificaciones recientes</span>
+            <button type="button" id="btn-undo-last-rating" class="btn-undo-rating" onclick="undoLastRating()" disabled>↩ Deshacer</button>
+        </div>
+        <div id="leaderboard-list" class="leaderboard-list">
+            <div class="empty-state">Aún no hay usuarios con videos registrados.</div>
         </div>
     </aside>
 
@@ -1670,13 +1686,97 @@
         }
 
         function sortLeaderboardItems(items) {
-            return [...items]
-                .filter(entry => entry && Number(entry.totalScore) > 0)
-                .sort((a, b) => {
-                    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-                    if (b.ratingsCount !== a.ratingsCount) return b.ratingsCount - a.ratingsCount;
-                    return String(a.displayName || '').localeCompare(String(b.displayName || ''));
-                });
+            const merged = new Map();
+
+            (Array.isArray(items) ? items : []).forEach(entry => {
+                if (!entry || typeof entry !== 'object') return;
+                const key = normalizeUser(entry.key || entry.displayName) || 'anonimo';
+                const displayName = formatDisplayUser(entry.displayName || key);
+                const totalScore = Number(entry.totalScore) || 0;
+                const ratingsCount = Number(entry.ratingsCount) || 0;
+                const submissionsCount = Number(entry.submissionsCount) || 0;
+                if (totalScore > 0 || ratingsCount > 0 || submissionsCount > 0) {
+                    merged.set(key, {
+                        key,
+                        displayName,
+                        totalScore,
+                        ratingsCount,
+                        submissionsCount,
+                        lastRating: Number.isFinite(Number(entry.lastRating)) ? Number(entry.lastRating) : null,
+                        updatedAt: Number(entry.updatedAt) || 0
+                    });
+                }
+            });
+
+            // Incluir siempre a todos los usuarios que enviaron videos (en cola o historial)
+            videos.forEach(v => {
+                const key = normalizeUser(v?.user);
+                if (!key) return;
+                if (!merged.has(key)) {
+                    merged.set(key, {
+                        key,
+                        displayName: formatDisplayUser(v.user),
+                        totalScore: 0,
+                        ratingsCount: 0,
+                        submissionsCount: 1,
+                        lastRating: null,
+                        updatedAt: Number(v.createdAt) || 0
+                    });
+                }
+            });
+
+            loadMyHistory().forEach(h => {
+                const key = normalizeUser(h?.user);
+                if (!key) return;
+                if (!merged.has(key)) {
+                    merged.set(key, {
+                        key,
+                        displayName: formatDisplayUser(h.user),
+                        totalScore: 0,
+                        ratingsCount: 0,
+                        submissionsCount: 1,
+                        lastRating: null,
+                        updatedAt: Number(h.createdAt) || 0
+                    });
+                }
+            });
+
+            return Array.from(merged.values()).sort((a, b) => {
+                const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
+                if (scoreDiff !== 0) return scoreDiff;
+                const ratingsDiff = (Number(b.ratingsCount) || 0) - (Number(a.ratingsCount) || 0);
+                if (ratingsDiff !== 0) return ratingsDiff;
+                const subsDiff = (Number(b.submissionsCount) || 0) - (Number(a.submissionsCount) || 0);
+                if (subsDiff !== 0) return subsDiff;
+                return String(a.displayName || '').localeCompare(String(b.displayName || ''));
+            });
+        }
+
+        function registerSubmittedUserInLeaderboard(rawUsername) {
+            const key = normalizeUser(rawUsername);
+            if (!key) return;
+            const displayName = formatDisplayUser(rawUsername);
+            const map = new Map();
+            leaderboard.forEach(item => {
+                const k = normalizeUser(item.key || item.displayName);
+                if (k) map.set(k, { ...item, key: k });
+            });
+            const existing = map.get(key) || {
+                key,
+                displayName,
+                totalScore: 0,
+                ratingsCount: 0,
+                submissionsCount: 0,
+                lastRating: null,
+                updatedAt: Date.now()
+            };
+            existing.displayName = displayName;
+            existing.submissionsCount = Number(existing.submissionsCount || 0) + 1;
+            existing.updatedAt = Date.now();
+            map.set(key, existing);
+            leaderboard = sortLeaderboardItems(Array.from(map.values()));
+            saveLocalLeaderboard(leaderboard);
+            renderLeaderboardPanel();
         }
 
         function applyScoreToLeaderboardLocal(rawUsername, rating, videoId = null) {
@@ -1694,6 +1794,7 @@
                 displayName,
                 totalScore: 0,
                 ratingsCount: 0,
+                submissionsCount: 1,
                 lastRating: null,
                 updatedAt: 0
             };
@@ -1744,16 +1845,18 @@
             if (existing) {
                 const nextScore = Math.max(0, Number(existing.totalScore || 0) - Number(removed.rating || 0));
                 const nextCount = Math.max(0, Number(existing.ratingsCount || 0) - 1);
+                const subsCount = Math.max(0, Number(existing.submissionsCount || 0));
                 const remainingUserEvents = ratingHistory.filter(ev => ev.key === key);
                 const prevEvent = remainingUserEvents[remainingUserEvents.length - 1];
 
-                if (nextScore <= 0 && nextCount <= 0) {
+                if (nextScore <= 0 && nextCount <= 0 && subsCount <= 0) {
                     map.delete(key);
                 } else {
                     map.set(key, {
                         ...existing,
                         totalScore: nextScore,
                         ratingsCount: nextCount,
+                        submissionsCount: subsCount,
                         lastRating: prevEvent ? prevEvent.rating : null,
                         updatedAt: Date.now()
                     });
@@ -1767,24 +1870,31 @@
         }
 
         function renderLeaderboardPanel() {
-            const panel = document.getElementById('feed-leaderboard-panel');
+            const panel = document.getElementById('leaderboard-panel');
             const listEl = document.getElementById('leaderboard-list');
             const badgeEl = document.getElementById('leaderboard-count-badge');
+            const undoBarEl = document.getElementById('leaderboard-undo-bar');
             const undoTextEl = document.getElementById('leaderboard-undo-text');
             const undoBtnEl = document.getElementById('btn-undo-last-rating');
-            const adminActive = document.getElementById('view-admin').classList.contains('active') && isAdminAuthenticated();
+            const adminActive = document.getElementById('view-admin').classList.contains('active');
+            const canModify = adminActive && isAdminAuthenticated();
 
             if (panel) {
                 panel.classList.toggle('visible-in-feed', Boolean(adminActive));
+                panel.classList.toggle('visible-in-chat', !adminActive);
             }
-            if (!adminActive || !listEl || !badgeEl) return;
+            if (!listEl || !badgeEl) return;
+
+            if (undoBarEl) {
+                undoBarEl.classList.toggle('admin-visible', Boolean(canModify));
+            }
 
             const lastEvent = ratingHistory.length > 0 ? ratingHistory[ratingHistory.length - 1] : null;
             if (undoTextEl && undoBtnEl) {
                 if (lastEvent) {
                     undoTextEl.textContent = `Última: ${lastEvent.displayName} (+${lastEvent.rating})`;
                     undoTextEl.title = `Deshacer +${lastEvent.rating} pts para ${lastEvent.displayName}`;
-                    undoBtnEl.disabled = false;
+                    undoBtnEl.disabled = !canModify;
                 } else {
                     undoTextEl.textContent = 'Sin calificaciones recientes';
                     undoTextEl.title = '';
@@ -1793,19 +1903,23 @@
             }
 
             const sorted = sortLeaderboardItems(leaderboard);
-            badgeEl.textContent = `${sorted.length} ${sorted.length === 1 ? 'top' : 'top'}`;
+            badgeEl.textContent = `${sorted.length} ${sorted.length === 1 ? 'usuario' : 'usuarios'}`;
 
             if (sorted.length === 0) {
-                listEl.innerHTML = '<div class="empty-state">Elige un número del 1 al 10 y pulsa Visto para sumar puntos.</div>';
+                listEl.innerHTML = '<div class="empty-state">Aún no hay usuarios con videos registrados.</div>';
                 return;
             }
 
             const medals = ['🥇', '🥈', '🥉'];
-            listEl.innerHTML = sorted.slice(0, 15).map((entry, idx) => {
+            listEl.innerHTML = sorted.map((entry, idx) => {
                 const rankIcon = medals[idx] || `#${idx + 1}`;
                 const topClass = idx === 0 ? 'top-1' : idx === 1 ? 'top-2' : idx === 2 ? 'top-3' : '';
-                const count = Number(entry.ratingsCount) || 1;
-                const avg = (Number(entry.totalScore || 0) / count).toFixed(1);
+                const score = Number(entry.totalScore || 0);
+                const count = Number(entry.ratingsCount) || 0;
+                const subs = Math.max(count, Number(entry.submissionsCount) || 0);
+                const subText = count > 0
+                    ? `${count} ${count === 1 ? 'calif.' : 'calif.'} · prom ${(score / count).toFixed(1)}/10`
+                    : `${subs} ${subs === 1 ? 'video enviado' : 'videos enviados'}`;
                 const entryKey = normalizeUser(entry.key || entry.displayName);
                 const latestUserEvent = [...ratingHistory].reverse().find(ev => ev.key === entryKey);
 
@@ -1815,12 +1929,12 @@
                             <span class="leaderboard-rank">${rankIcon}</span>
                             <div class="leaderboard-user-wrap">
                                 <span class="leaderboard-name" title="${entry.displayName}">${entry.displayName}</span>
-                                <span class="leaderboard-sub">${count} ${count === 1 ? 'clip' : 'clips'} · prom ${avg}/10</span>
+                                <span class="leaderboard-sub">${subText}</span>
                             </div>
                         </div>
                         <div class="leaderboard-right">
-                            <span class="leaderboard-points">${entry.totalScore} pts</span>
-                            ${latestUserEvent
+                            <span class="leaderboard-points">${score} pts</span>
+                            ${canModify && latestUserEvent
                                 ? `<button type="button" class="btn-row-undo" onclick="undoRating('${latestUserEvent.eventId}')" title="Quitar última calificación (+${latestUserEvent.rating}) de ${entry.displayName}">↩</button>`
                                 : ''}
                         </div>
@@ -2739,6 +2853,7 @@
 
                 if (result.ok) {
                     setUserLastUploadTime(username, Date.now());
+                    registerSubmittedUserInLeaderboard(username);
                     setUploadProgressUI(true, 100, '¡Subida completada!');
                     const created = result.data || {};
                     const id = created.id || `vid_${Date.now()}`;
@@ -2761,6 +2876,7 @@
                     return;
                 } else {
                     setUserLastUploadTime(username, Date.now());
+                    registerSubmittedUserInLeaderboard(username);
                     setUploadProgressUI(true, 100, 'Guardado en cola local');
                     const createdAt = Date.now();
                     const localId = `local_${createdAt}_${Math.random().toString(36).slice(2, 7)}`;
@@ -3070,14 +3186,6 @@
                 const resp = await fetch(`${API_BASE}/api/queue`);
                 if (!resp.ok) return;
                 const data = await resp.json();
-                if (Array.isArray(data?.leaderboard)) {
-                    leaderboard = sortLeaderboardItems(data.leaderboard);
-                    saveLocalLeaderboard(leaderboard);
-                }
-                if (Array.isArray(data?.ratingHistory)) {
-                    ratingHistory = data.ratingHistory.slice(-100);
-                    saveLocalRatingHistory(ratingHistory);
-                }
                 const remoteList = Array.isArray(data?.items) ? data.items : (Array.isArray(data) ? data : []);
                 const localItems = videos.filter(v => String(v.id).startsWith('local_'));
 
@@ -3086,6 +3194,18 @@
                 const nextSignature = nextVideos.map(v => `${v.id}:${v.user}`).join('|');
 
                 videos = nextVideos;
+
+                if (Array.isArray(data?.leaderboard)) {
+                    leaderboard = sortLeaderboardItems(data.leaderboard);
+                    saveLocalLeaderboard(leaderboard);
+                } else {
+                    leaderboard = sortLeaderboardItems(leaderboard);
+                }
+                if (Array.isArray(data?.ratingHistory)) {
+                    ratingHistory = data.ratingHistory.slice(-100);
+                    saveLocalRatingHistory(ratingHistory);
+                }
+
                 updateQueueCounterUI();
                 renderUserVideosPanel();
                 renderFeedUsersPanel();

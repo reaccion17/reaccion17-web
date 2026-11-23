@@ -46,17 +46,7 @@ function formatDisplayUsername(name) {
   return clean ? `@${clean}` : '@Anónimo';
 }
 
-function getSortedLeaderboard() {
-  return Array.from(leaderboardByUser.values())
-    .filter((entry) => entry && Number(entry.totalScore) > 0)
-    .sort((a, b) => {
-      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-      if (b.ratingsCount !== a.ratingsCount) return b.ratingsCount - a.ratingsCount;
-      return String(a.displayName).localeCompare(String(b.displayName));
-    });
-}
-
-function addUserScore(rawUsername, rating, videoId = null, fileName = null) {
+function ensureUserInLeaderboard(rawUsername, submittedDelta = 0) {
   const key = normalizeUsername(rawUsername) || 'anonimo';
   const displayName = formatDisplayUsername(rawUsername);
   const existing = leaderboardByUser.get(key) || {
@@ -64,9 +54,43 @@ function addUserScore(rawUsername, rating, videoId = null, fileName = null) {
     displayName,
     totalScore: 0,
     ratingsCount: 0,
+    submissionsCount: 0,
     lastRating: null,
-    updatedAt: 0
+    updatedAt: Date.now()
   };
+
+  existing.displayName = displayName;
+  existing.totalScore = Number(existing.totalScore || 0);
+  existing.ratingsCount = Number(existing.ratingsCount || 0);
+  existing.submissionsCount = Math.max(0, Number(existing.submissionsCount || 0) + submittedDelta);
+  existing.updatedAt = Date.now();
+
+  leaderboardByUser.set(key, existing);
+  return existing;
+}
+
+function getSortedLeaderboard() {
+  return Array.from(leaderboardByUser.values())
+    .filter((entry) => entry && (
+      Number(entry.totalScore) > 0 ||
+      Number(entry.ratingsCount) > 0 ||
+      Number(entry.submissionsCount) > 0
+    ))
+    .sort((a, b) => {
+      const scoreDiff = (Number(b.totalScore) || 0) - (Number(a.totalScore) || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      const ratingsDiff = (Number(b.ratingsCount) || 0) - (Number(a.ratingsCount) || 0);
+      if (ratingsDiff !== 0) return ratingsDiff;
+      const subsDiff = (Number(b.submissionsCount) || 0) - (Number(a.submissionsCount) || 0);
+      if (subsDiff !== 0) return subsDiff;
+      return String(a.displayName).localeCompare(String(b.displayName));
+    });
+}
+
+function addUserScore(rawUsername, rating, videoId = null, fileName = null) {
+  const key = normalizeUsername(rawUsername) || 'anonimo';
+  const displayName = formatDisplayUsername(rawUsername);
+  const existing = ensureUserInLeaderboard(rawUsername, 0);
 
   existing.displayName = displayName;
   existing.totalScore = Number(existing.totalScore || 0) + rating;
@@ -107,17 +131,19 @@ function undoRatingEventById(eventId) {
   if (existing) {
     const nextScore = Math.max(0, Number(existing.totalScore || 0) - Number(removedEvent.rating || 0));
     const nextCount = Math.max(0, Number(existing.ratingsCount || 0) - 1);
+    const subsCount = Math.max(0, Number(existing.submissionsCount || 0));
 
     const remainingUserEvents = ratingHistory.filter((ev) => ev.key === key);
     const prevEvent = remainingUserEvents[remainingUserEvents.length - 1];
 
-    if (nextScore <= 0 && nextCount <= 0) {
+    if (nextScore <= 0 && nextCount <= 0 && subsCount <= 0) {
       leaderboardByUser.delete(key);
     } else {
       leaderboardByUser.set(key, {
         ...existing,
         totalScore: nextScore,
         ratingsCount: nextCount,
+        submissionsCount: subsCount,
         lastRating: prevEvent ? prevEvent.rating : null,
         updatedAt: Date.now()
       });
@@ -251,16 +277,25 @@ function hydrateStateFromObject(parsed) {
       const key = rawKey || normalizeUsername(val.displayName) || 'anonimo';
       const totalScore = Number(val.totalScore) || 0;
       const ratingsCount = Number(val.ratingsCount) || 0;
-      if (totalScore > 0 || ratingsCount > 0) {
+      const submissionsCount = Number(val.submissionsCount) || 0;
+      if (totalScore > 0 || ratingsCount > 0 || submissionsCount > 0) {
         leaderboardByUser.set(key, {
           key,
           displayName: formatDisplayUsername(val.displayName || key),
           totalScore,
           ratingsCount,
+          submissionsCount,
           lastRating: Number.isFinite(Number(val.lastRating)) ? Number(val.lastRating) : null,
           updatedAt: Number(val.updatedAt) || 0
         });
       }
+    }
+  }
+
+  // Asegurar que todo usuario actualmente en cola también figure en el leaderboard
+  for (const item of queueItems) {
+    if (item?.user) {
+      ensureUserInLeaderboard(item.user, 0);
     }
   }
 
@@ -404,6 +439,8 @@ app.post('/api/queue', upload.single('file'), async (req, res) => {
     if (userKey) {
       lastUploadByUser.set(userKey, now);
     }
+
+    ensureUserInLeaderboard(user, 1);
 
     const publicUrl = getPublicVideoUrl(storagePath);
     const item = {
